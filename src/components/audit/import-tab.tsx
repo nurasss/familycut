@@ -152,10 +152,10 @@ export function ImportTab({ mode, onExpensesChange }: ImportTabProps) {
             htmlFor={`${uid}-paste`}
             className="block text-sm font-bold text-foreground"
           >
-            Paste bank statement lines or CSV text
+            Paste transactions
           </label>
           <p id={`${uid}-paste-help`} className="mt-1 text-xs text-muted-foreground">
-            Supports CSV with headers or plain lines like{" "}
+            Supports bank statement lines or CSV text like{" "}
             <code className="rounded bg-muted px-1 py-0.5 text-[11px]">
               2026-10-03 NETFLIX.COM 8844 -15.49
             </code>
@@ -163,7 +163,8 @@ export function ImportTab({ mode, onExpensesChange }: ImportTabProps) {
           </p>
           <textarea
             id={`${uid}-paste`}
-            rows={7}
+            aria-label="Paste transactions"
+            rows={5}
             aria-describedby={`${uid}-paste-help`}
             value={pasteText}
             onChange={(e) => setPasteText(e.target.value)}
@@ -205,7 +206,7 @@ export function ImportTab({ mode, onExpensesChange }: ImportTabProps) {
               if (file) void handleFile(file);
             }}
             className={cn(
-              "flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center transition-colors",
+              "flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-5 text-center transition-colors sm:p-8",
               isDragging
                 ? "border-primary bg-[var(--savings-bg)]/30"
                 : "border-border bg-background/50",
@@ -224,12 +225,12 @@ export function ImportTab({ mode, onExpensesChange }: ImportTabProps) {
               uploaded to any server.
             </p>
 
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-5 flex w-full flex-col items-stretch justify-center gap-2.5 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
               <label
                 htmlFor={`${uid}-csv-input`}
-                className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-95"
+                className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-95 sm:w-auto"
               >
-                <FileSpreadsheet className="size-4" aria-hidden="true" />
+                <FileSpreadsheet className="size-4 shrink-0" aria-hidden="true" />
                 <span>{fileName ? "Choose another CSV" : "Choose CSV file"}</span>
               </label>
               <input
@@ -246,7 +247,7 @@ export function ImportTab({ mode, onExpensesChange }: ImportTabProps) {
               <button
                 type="button"
                 onClick={handleLoadSample}
-                className="inline-flex min-h-11 items-center rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground hover:bg-muted"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground hover:bg-muted sm:w-auto"
               >
                 Load sample CSV
               </button>

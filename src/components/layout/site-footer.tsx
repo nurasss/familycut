@@ -56,6 +56,7 @@ export function SiteFooter() {
     dialog.returnValue = "";
     if (val === "delete") {
       deleteAllData();
+      window.dispatchEvent(new CustomEvent("familycut:delete-all-data"));
       router.push("/");
     }
   };
@@ -78,7 +79,7 @@ export function SiteFooter() {
         <button
           type="button"
           onClick={handleOpenDialog}
-          className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-[var(--chip-cut)] underline-offset-4 hover:underline"
+          className="no-print inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-[var(--chip-cut)] underline-offset-4 hover:underline"
         >
           Delete my data
         </button>
@@ -90,7 +91,7 @@ export function SiteFooter() {
         {...({ closedby: "any" } as Record<string, string>)}
         aria-labelledby="delete-data-dialog-title"
         onClose={handleDialogClose}
-        className="m-auto w-[min(92vw,26rem)] rounded-xl border border-border bg-card p-6 text-foreground shadow-lg"
+        className="m-auto w-[min(92vw,26rem)] max-w-[calc(100vw-1.5rem)] rounded-xl border border-border bg-card p-5 text-foreground shadow-lg sm:p-6"
       >
         <h2
           id="delete-data-dialog-title"
@@ -110,14 +111,14 @@ export function SiteFooter() {
             type="submit"
             value="cancel"
             autoFocus
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+            className="inline-flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted sm:w-auto"
           >
             Cancel
           </button>
           <button
             type="submit"
             value="delete"
-            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--chip-cut)] px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            className="inline-flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-lg bg-[var(--chip-cut)] px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 sm:w-auto"
           >
             Delete my data
           </button>

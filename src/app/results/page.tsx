@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { ChevronDown, Printer, Sparkles } from "lucide-react";
 import { annualCents } from "@/lib/engine/money";
 import { formatUsd } from "@/lib/format";
 import { SAMPLE_DATA_LABEL } from "@/lib/fixtures/miller";
@@ -50,6 +50,13 @@ export default function ResultsPage() {
     filter === "all"
       ? expenses
       : expenses.filter((e) => e.decision === filter);
+
+  const confirmedOrTrustedExpenses = filteredExpenses.filter(
+    (e) => !(e.confidence === "low" && e.decision === "undecided"),
+  );
+  const needsReviewExpenses = filteredExpenses.filter(
+    (e) => e.confidence === "low" && e.decision === "undecided",
+  );
 
   const countForFilter = (key: FilterKey) =>
     key === "all"
@@ -114,18 +121,28 @@ export default function ResultsPage() {
                   Changes recalculate immediately.
                 </p>
               </div>
-              <Link
-                href="/audit"
-                className="inline-flex min-h-11 items-center rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground hover:bg-muted"
-              >
-                Add more bills
-              </Link>
+              <div className="no-print flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 text-sm font-medium text-foreground hover:bg-muted"
+                >
+                  <Printer className="size-4" aria-hidden="true" />
+                  <span>Print / Save as PDF</span>
+                </button>
+                <Link
+                  href="/audit"
+                  className="inline-flex min-h-11 items-center rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground hover:bg-muted"
+                >
+                  Add more bills
+                </Link>
+              </div>
             </div>
 
             {/* Three independent metric cards (§8.2) */}
             <section
               aria-label="Annual financial summary"
-              className="grid grid-cols-1 gap-4 md:grid-cols-3"
+              className="print-card-grid grid grid-cols-1 gap-4 md:grid-cols-3"
             >
               <div className="rounded-xl border border-border bg-card p-5">
                 <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
@@ -166,7 +183,7 @@ export default function ResultsPage() {
             </section>
 
             {/* Main 2-column content: Goal sidebar first in mobile flow? Right on desktop, above list on mobile */}
-            <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+            <div className="print-single-col grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
               <div className="order-1 lg:order-2 lg:col-span-4">
                 <FamilyGoalCard
                   goal={session.goal}
@@ -216,7 +233,7 @@ export default function ResultsPage() {
                               /yr
                             </p>
                             <p className="mt-1.5 text-xs leading-snug text-muted-foreground">
-                              {cand.reasons[0]}
+                              {cand.reasons.join(" · ")}
                             </p>
                           </div>
 
@@ -253,7 +270,7 @@ export default function ResultsPage() {
                     <div
                       role="group"
                       aria-label="Filter expenses by decision"
-                      className="flex flex-wrap gap-1.5"
+                      className="no-print flex flex-wrap gap-1.5"
                     >
                       {FILTERS.map((f) => {
                         const count = countForFilter(f.key);
@@ -292,17 +309,51 @@ export default function ResultsPage() {
                       </button>
                     </div>
                   ) : (
-                    <div className="mt-4 space-y-3">
-                      {filteredExpenses.map((expense) => (
-                        <ExpenseCard
-                          key={expense.id}
-                          expense={expense}
-                          onDecisionChange={setDecision}
-                          onTargetPriceChange={setTargetPrice}
-                          onUpdateExpense={updateExpense}
-                        />
-                      ))}
-                    </div>
+                    <>
+                      {confirmedOrTrustedExpenses.length > 0 && (
+                        <div className="mt-4 space-y-3">
+                          {confirmedOrTrustedExpenses.map((expense) => (
+                            <ExpenseCard
+                              key={expense.id}
+                              expense={expense}
+                              onDecisionChange={setDecision}
+                              onTargetPriceChange={setTargetPrice}
+                              onUpdateExpense={updateExpense}
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {needsReviewExpenses.length > 0 && (
+                        <details className="group mt-4 rounded-xl border border-border bg-card">
+                          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 p-4 sm:p-5 [&::-webkit-details-marker]:hidden">
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-foreground">
+                                Needs your review ({needsReviewExpenses.length})
+                              </p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">
+                                Not counted in recurring spend until you confirm
+                              </p>
+                            </div>
+                            <ChevronDown
+                              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+                              aria-hidden="true"
+                            />
+                          </summary>
+                          <div className="space-y-3 border-t border-border p-4 sm:p-5">
+                            {needsReviewExpenses.map((expense) => (
+                              <ExpenseCard
+                                key={expense.id}
+                                expense={expense}
+                                onDecisionChange={setDecision}
+                                onTargetPriceChange={setTargetPrice}
+                                onUpdateExpense={updateExpense}
+                              />
+                            ))}
+                          </div>
+                        </details>
+                      )}
+                    </>
                   )}
                 </section>
               </div>

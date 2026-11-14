@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { useAuditStore } from "@/lib/store";
@@ -32,6 +32,33 @@ export default function AuditPage() {
   const [pasteExpenses, setPasteExpenses] = useState<Expense[]>([]);
   const [csvExpenses, setCsvExpenses] = useState<Expense[]>([]);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
+  const [resetKey, setResetKey] = useState(0);
+
+  useEffect(() => {
+    const resetLocalAuditState = () => {
+      setPasteExpenses([]);
+      setCsvExpenses([]);
+      setAnalyzeError(null);
+      setActiveTab("manual");
+      setResetKey((k) => k + 1);
+    };
+
+    const handleResetEvent = () => {
+      resetLocalAuditState();
+    };
+
+    window.addEventListener("familycut:delete-all-data", handleResetEvent);
+    const unsub = useAuditStore.subscribe((state, prevState) => {
+      if (prevState.session !== null && state.session === null && !state.isDemo) {
+        resetLocalAuditState();
+      }
+    });
+
+    return () => {
+      window.removeEventListener("familycut:delete-all-data", handleResetEvent);
+      unsub();
+    };
+  }, []);
   const tabRefs = useRef<Record<AuditTabId, HTMLButtonElement | null>>({
     manual: null,
     paste: null,
@@ -149,7 +176,7 @@ export default function AuditPage() {
                 }}
                 onKeyDown={(e) => handleTabKeyDown(e, idx)}
                 className={cn(
-                  "relative shrink-0 min-h-11 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap",
+                  "relative flex flex-1 items-center justify-center min-h-11 px-2 py-2.5 text-xs font-medium transition-colors whitespace-nowrap sm:flex-initial sm:px-4 sm:text-sm",
                   selected
                     ? "font-semibold text-foreground"
                     : "text-muted-foreground hover:text-foreground",
@@ -173,21 +200,29 @@ export default function AuditPage() {
             aria-labelledby="tab-manual"
             hidden={activeTab !== "manual"}
           >
-            {activeTab === "manual" && <ManualTab />}
+            {activeTab === "manual" && <ManualTab key={`manual-${resetKey}`} />}
           </div>
           <div
             role="tabpanel"
             aria-labelledby="tab-paste"
             hidden={activeTab !== "paste"}
           >
-            <ImportTab mode="paste" onExpensesChange={handlePasteExpenses} />
+            <ImportTab
+              key={`paste-${resetKey}`}
+              mode="paste"
+              onExpensesChange={handlePasteExpenses}
+            />
           </div>
           <div
             role="tabpanel"
             aria-labelledby="tab-csv"
             hidden={activeTab !== "csv"}
           >
-            <ImportTab mode="csv" onExpensesChange={handleCsvExpenses} />
+            <ImportTab
+              key={`csv-${resetKey}`}
+              mode="csv"
+              onExpensesChange={handleCsvExpenses}
+            />
           </div>
         </div>
 
@@ -203,11 +238,11 @@ export default function AuditPage() {
 
       {/* Bottom sticky action bar */}
       <div className="sticky bottom-0 z-20 border-t border-border bg-card shadow-[0_-4px_16px_rgba(28,25,23,0.06)]">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-6">
           <button
             type="button"
             onClick={handleTryDemo}
-            className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+            className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold text-primary underline-offset-4 hover:underline sm:px-3 sm:text-sm"
           >
             Try demo data
           </button>
@@ -215,12 +250,12 @@ export default function AuditPage() {
           <button
             type="button"
             onClick={handleAnalyze}
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-95"
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-95 sm:gap-2 sm:px-5 sm:text-sm"
           >
             <span>
               Analyze expenses{readyCount > 0 ? ` (${readyCount})` : ""}
             </span>
-            <ArrowRight className="size-4" aria-hidden="true" />
+            <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
           </button>
         </div>
       </div>

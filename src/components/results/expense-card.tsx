@@ -174,7 +174,7 @@ export function ExpenseCard({
     : expense.reasons;
 
   return (
-    <article className="rounded-xl border border-border bg-card p-4 sm:p-5">
+    <article className="print-avoid-break rounded-xl border border-border bg-card p-4 sm:p-5">
       {!editing ? (
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
           <div className="min-w-0 flex-1">
@@ -222,7 +222,7 @@ export function ExpenseCard({
               type="button"
               onClick={openEdit}
               aria-label={`Edit ${expense.merchant}`}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground hover:bg-muted"
+              className="no-print inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground hover:bg-muted"
             >
               <Pencil className="size-3.5" aria-hidden="true" />
               <span>Edit</span>
@@ -356,7 +356,7 @@ export function ExpenseCard({
         {(expense.decision === "cut" || expense.decision === "negotiate") && (
           <Link
             href={`/action?id=${encodeURIComponent(expense.id)}`}
-            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-[var(--savings-bg)]/60 px-3.5 text-xs font-semibold text-primary transition-colors hover:bg-[var(--savings-bg)]"
+            className="no-print inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-[var(--savings-bg)]/60 px-3.5 text-xs font-semibold text-primary transition-colors hover:bg-[var(--savings-bg)]"
           >
             <span>Get script</span>
             <ArrowRight className="size-3.5" aria-hidden="true" />

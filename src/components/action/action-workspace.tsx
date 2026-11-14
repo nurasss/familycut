@@ -9,6 +9,7 @@ import {
   Copy,
   Mail,
   Phone,
+  Printer,
   RefreshCw,
 } from "lucide-react";
 import { fallbackAction } from "@/lib/ai/fallback";
@@ -104,18 +105,11 @@ function ActionDetail({
   } | null>(null);
   const [copied, setCopied] = useState(false);
   const [checkedSteps, setCheckedSteps] = useState<Record<string, boolean>>({});
-  const [reportedPriceDraft, setReportedPriceDraft] = useState(() => {
-    const initialCents =
-      expense.actionStatus === "completed"
-        ? (expense.reportedNewPriceCents ??
-          (expense.decision === "cut"
-            ? 0
-            : (expense.targetPriceCents ?? expense.priceCents)))
-        : expense.decision === "cut"
-          ? 0
-          : (expense.targetPriceCents ?? expense.priceCents);
-    return centsToInputValue(initialCents);
-  });
+  const [reportedPriceDraft, setReportedPriceDraft] = useState(() =>
+    expense.reportedNewPriceCents !== undefined
+      ? centsToInputValue(expense.reportedNewPriceCents)
+      : "",
+  );
   const [reportedPriceError, setReportedPriceError] = useState<string | null>(
     null,
   );
@@ -205,27 +199,41 @@ function ActionDetail({
 
   const handleStatusSelect = (status: ActionStatus) => {
     if (status !== "completed") {
+      setReportedPriceError(null);
+      setReportedPriceDraft("");
       onStatusChange(expense.id, status);
       return;
     }
 
-    const defaultCents =
-      expense.decision === "cut"
-        ? 0
-        : (expense.targetPriceCents ?? expense.priceCents);
-    const parsed = parsePriceInputToCents(reportedPriceDraft);
-    const cents = parsed !== null ? parsed : defaultCents;
-    setReportedPriceDraft(centsToInputValue(cents));
     setReportedPriceError(null);
-    onStatusChange(expense.id, "completed", cents);
+    if (expense.decision === "cut") {
+      onStatusChange(expense.id, "completed", 0);
+      return;
+    }
+
+    const trimmed = reportedPriceDraft.trim();
+    const parsed = trimmed ? parsePriceInputToCents(trimmed) : null;
+    if (parsed !== null) {
+      onStatusChange(expense.id, "completed", parsed);
+    } else {
+      onStatusChange(expense.id, "completed");
+    }
   };
 
   const handleReportedPriceChange = (raw: string) => {
     setReportedPriceDraft(raw);
-    if (expense.actionStatus !== "completed") return;
+    if (expense.actionStatus !== "completed" || expense.decision !== "negotiate") {
+      return;
+    }
+    if (!raw.trim()) {
+      setReportedPriceError(null);
+      onStatusChange(expense.id, "completed", undefined);
+      return;
+    }
     const cents = parsePriceInputToCents(raw);
     if (cents === null) {
       setReportedPriceError("Enter a valid dollar price");
+      onStatusChange(expense.id, "completed", undefined);
       return;
     }
     setReportedPriceError(null);
@@ -392,7 +400,7 @@ function ActionDetail({
           )}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
+        <div className="no-print mt-4 flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={() => void handleCopy()}
@@ -430,8 +438,8 @@ function ActionDetail({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="rounded-xl border border-border bg-card p-5">
+      <div className="print-card-grid grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="print-avoid-break rounded-xl border border-border bg-card p-5">
           <h3 className="text-sm font-bold text-foreground">
             Next steps checklist
           </h3>
@@ -468,7 +476,7 @@ function ActionDetail({
           </ul>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className="print-avoid-break rounded-xl border border-border bg-card p-5">
           <div className="flex items-center gap-2">
             <AlertTriangle
               className="size-4 text-[var(--chip-negotiate)]"
@@ -489,7 +497,7 @@ function ActionDetail({
         </div>
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-5">
+      <div className="print-avoid-break rounded-xl border border-border bg-card p-5">
         <h3 className="text-sm font-bold text-foreground">Action status</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Track your own progress after contacting the provider.
@@ -524,32 +532,74 @@ function ActionDetail({
 
         {expense.actionStatus === "completed" && (
           <div className="mt-4 rounded-lg border border-[#BBF7D0] bg-[var(--savings-bg)]/50 p-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <label
-                  htmlFor={`${uid}-reported-price`}
-                  className="text-sm font-semibold text-foreground"
-                >
-                  New price you got ($ / {freqShort})
-                </label>
-                <input
-                  id={`${uid}-reported-price`}
-                  type="text"
-                  inputMode="decimal"
-                  value={reportedPriceDraft}
-                  onChange={(e) => handleReportedPriceChange(e.target.value)}
-                  aria-invalid={reportedPriceError ? "true" : undefined}
-                  className="min-h-11 w-28 rounded-lg border border-input bg-card px-3 text-sm font-semibold text-foreground tabular-nums"
-                />
+            {expense.decision === "cut" ? (
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <label
+                    htmlFor={`${uid}-reported-price`}
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    New price you got ($ / {freqShort})
+                  </label>
+                  <input
+                    id={`${uid}-reported-price`}
+                    type="text"
+                    readOnly
+                    value="$0.00 (cancelled)"
+                    className="min-h-11 w-40 rounded-lg border border-border bg-muted px-3 text-sm font-semibold text-foreground tabular-nums"
+                  />
+                </div>
+                <p className="text-xs font-medium text-primary tabular-nums">
+                  Reported {formatUsd(annualCents(expense.priceCents, expense.frequency))}
+                  /yr (not bank-verified)
+                </p>
               </div>
-              <p className="text-xs font-medium text-primary">
-                Counts as self-reported savings (not bank-verified)
-              </p>
-            </div>
-            {reportedPriceError && (
-              <p role="alert" className="mt-1.5 text-xs text-[var(--chip-cut)]">
-                {reportedPriceError}
-              </p>
+            ) : (
+              <>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <label
+                      htmlFor={`${uid}-reported-price`}
+                      className="text-sm font-semibold text-foreground"
+                    >
+                      New price you got ($ / {freqShort})
+                    </label>
+                    <input
+                      id={`${uid}-reported-price`}
+                      type="text"
+                      inputMode="decimal"
+                      value={reportedPriceDraft}
+                      onChange={(e) => handleReportedPriceChange(e.target.value)}
+                      placeholder={`e.g. ${centsToInputValue(expense.targetPriceCents ?? expense.priceCents)}`}
+                      aria-invalid={reportedPriceError ? "true" : undefined}
+                      className="min-h-11 w-32 rounded-lg border border-input bg-card px-3 text-sm font-semibold text-foreground tabular-nums placeholder:font-normal placeholder:text-muted-foreground/70"
+                    />
+                  </div>
+                  {!reportedPriceError && (
+                    <p
+                      className={cn(
+                        "text-xs font-medium tabular-nums",
+                        expense.reportedNewPriceCents === undefined ||
+                          expense.reportedNewPriceCents >= expense.priceCents
+                          ? "text-muted-foreground"
+                          : "text-primary",
+                      )}
+                    >
+                      {!reportedPriceDraft.trim() ||
+                      expense.reportedNewPriceCents === undefined
+                        ? "Enter the new price to count self-reported savings"
+                        : expense.reportedNewPriceCents >= expense.priceCents
+                          ? "No savings at this price"
+                          : `Reported ${formatUsd((expense.priceCents - expense.reportedNewPriceCents) * MULTIPLIER[expense.frequency])}/yr · Counts as self-reported savings (not bank-verified)`}
+                    </p>
+                  )}
+                </div>
+                {reportedPriceError && (
+                  <p role="alert" className="mt-1.5 text-xs text-[var(--chip-cut)]">
+                    {reportedPriceError}
+                  </p>
+                )}
+              </>
             )}
           </div>
         )}
@@ -654,15 +704,25 @@ export function ActionWorkspace({
                 </p>
               </div>
 
-              <Link
-                href="/results"
-                className="inline-flex min-h-11 items-center rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground hover:bg-muted"
-              >
-                Back to Review
-              </Link>
+              <div className="no-print flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 text-sm font-medium text-foreground hover:bg-muted"
+                >
+                  <Printer className="size-4" aria-hidden="true" />
+                  <span>Print / Save as PDF</span>
+                </button>
+                <Link
+                  href="/results"
+                  className="inline-flex min-h-11 items-center rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground hover:bg-muted"
+                >
+                  Back to Review
+                </Link>
+              </div>
             </div>
 
-            <div className="lg:hidden">
+            <div className="no-print lg:hidden">
               <label
                 htmlFor={`${uid}-mobile-select`}
                 className="block text-xs font-semibold text-muted-foreground"
@@ -689,10 +749,10 @@ export function ActionWorkspace({
               </select>
             </div>
 
-            <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+            <div className="print-single-col grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
               <aside
                 aria-label="Selected actions list"
-                className="hidden lg:col-span-4 lg:block"
+                className="no-print hidden lg:col-span-4 lg:block"
               >
                 <div className="rounded-xl border border-border bg-card p-3">
                   <p className="px-2 py-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">

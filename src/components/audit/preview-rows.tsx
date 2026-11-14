@@ -205,8 +205,10 @@ export function PreviewRows({
                   <p className="truncate text-sm font-semibold text-foreground">
                     {exp.merchant}
                   </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {exp.reasons[0] ?? exp.category}
+                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                    {exp.reasons.length > 0
+                      ? exp.reasons.join(" · ")
+                      : exp.category}
                   </p>
                 </div>
                 <div className="shrink-0 text-right">

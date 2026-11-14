@@ -62,7 +62,7 @@ export function FamilyGoalCard({
   return (
     <aside
       aria-label="Family goal and action plan"
-      className="rounded-xl border border-border bg-card p-5 lg:sticky lg:top-32"
+      className="print-avoid-break rounded-xl border border-border bg-card p-5 lg:sticky lg:top-32"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -83,7 +83,7 @@ export function FamilyGoalCard({
           <button
             type="button"
             onClick={openEditor}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-primary hover:bg-muted"
+            className="no-print inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-primary hover:bg-muted"
           >
             <Pencil className="size-3.5" aria-hidden="true" />
             <span>{goal ? "Edit" : "Set goal"}</span>
@@ -246,7 +246,7 @@ export function FamilyGoalCard({
         </div>
       )}
 
-      <div className="mt-5 border-t border-border pt-4">
+      <div className="no-print mt-5 border-t border-border pt-4">
         <Link
           href="/action"
           className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-95"

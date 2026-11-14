@@ -51,7 +51,7 @@ export function SiteHeader({
         {variant === "landing" ? (
           <nav
             aria-label="Primary"
-            className="flex items-center gap-2 sm:gap-4"
+            className="no-print flex items-center gap-2 sm:gap-4"
           >
             <a
               href="#how-it-works"
@@ -75,7 +75,7 @@ export function SiteHeader({
             <button
               type="button"
               onClick={handleTryDemo}
-              className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted sm:px-3.5 sm:text-sm"
+              className="no-print inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted sm:px-3.5 sm:text-sm"
             >
               Try demo
             </button>
@@ -84,7 +84,7 @@ export function SiteHeader({
       </div>
 
       {variant === "app" && currentStep && (
-        <div className="border-t border-border/80 bg-background/80">
+        <div className="no-print border-t border-border/80 bg-background/80">
           <nav
             aria-label="Audit progress"
             className="mx-auto flex w-full max-w-6xl items-center justify-between gap-2 px-4 py-2 sm:px-6"
