@@ -17,7 +17,8 @@ const CUT: ActionRequest = { ...NEGOTIATE, action: 'cut', targetPriceCents: unde
 const goodScript = JSON.stringify({
   subject: '',
   body: '',
-  callScript: 'Hi, I’d like to review my plan.\nCan you confirm the new price and fees?',
+  // 3 lines: negotiation scripts must have 3-6 lines (response-check.ts)
+  callScript: 'Hi, I’d like to review my plan.\nCan you confirm the new price and fees?\nPlease also confirm the contract terms.',
   steps: ['Check your bill'],
   limitations: ['You must contact the provider yourself.'],
 });
@@ -83,7 +84,9 @@ describe('generateWithGrok', () => {
     expect(body.response_format.type).toBe('json_schema');
     expect(body.response_format.json_schema.schema.properties.source).toBeUndefined();
     const sent = JSON.stringify(body.messages);
-    expect(sent).toContain('Example Internet Provider');
+    // A name that is not a known service never reaches the model (safe-request policy, see safe-request.test.ts).
+    expect(sent).not.toContain('Example Internet Provider');
+    expect(sent).toContain('Service provider');
     expect(sent).toContain('$75.00');
     expect(Object.keys(body).sort()).toEqual(['messages', 'model', 'response_format', 'temperature']);
   });

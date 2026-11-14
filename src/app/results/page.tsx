@@ -14,6 +14,8 @@ import { FamilyGoalCard } from "@/components/results/family-goal-card";
 import { ExpenseCard } from "@/components/results/expense-card";
 import { getReviewCandidates } from "@/components/audit/import-adapter";
 import { SampleDataBadge } from "@/components/ui-badges";
+import { TryDemoConfirmDialog } from "@/components/demo/try-demo-confirm-dialog";
+import { useTryDemo } from "@/components/demo/use-try-demo";
 import { useHasHydrated } from "@/components/use-hydrated";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +34,9 @@ export default function ResultsPage() {
   const hydrated = useHasHydrated();
   const session = useAuditStore((s) => s.session);
   const isDemo = useAuditStore((s) => s.isDemo);
-  const loadDemo = useAuditStore((s) => s.loadDemo);
+  const { requestTryDemo, dialogProps: tryDemoDialogProps } = useTryDemo({
+    redirectTo: null,
+  });
   const setDecision = useAuditStore((s) => s.setDecision);
   const setTargetPrice = useAuditStore((s) => s.setTargetPrice);
   const updateExpense = useAuditStore((s) => s.updateExpense);
@@ -96,7 +100,7 @@ export default function ResultsPage() {
               </Link>
               <button
                 type="button"
-                onClick={loadDemo}
+                onClick={requestTryDemo}
                 className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-card px-5 text-sm font-semibold text-foreground hover:bg-muted"
               >
                 Try demo
@@ -361,6 +365,8 @@ export default function ResultsPage() {
           </div>
         )}
       </main>
+
+      <TryDemoConfirmDialog {...tryDemoDialogProps} />
 
       <SiteFooter />
     </div>

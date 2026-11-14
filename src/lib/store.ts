@@ -3,8 +3,21 @@
 import { useMemo } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import {
+  applyActionStatus,
+  applyDecision,
+  applyExpensePatch,
+  type ExpensePatch,
+} from '@/lib/engine/lifecycle';
 import { computeTotals } from '@/lib/engine/money';
 import { DEMO_EXPENSES, DEMO_GOAL } from '@/lib/fixtures/miller';
+import {
+  STORAGE_KEY,
+  STORAGE_VERSION,
+  migratePersisted,
+  sanitizePersisted,
+  stripTransactionIds,
+} from '@/lib/persisted-state';
 import type {
   ActionStatus,
   AuditSession,
@@ -14,7 +27,7 @@ import type {
   Totals,
 } from '@/lib/types';
 
-export const STORAGE_KEY = 'familycut:audit:v1';
+export { STORAGE_KEY, STORAGE_VERSION, migratePersisted, sanitizePersisted, stripTransactionIds };
 
 /** Minimum fields to add an expense manually; the rest gets defaults. */
 export type NewExpense = Pick<Expense, 'merchant' | 'priceCents' | 'frequency'> &
@@ -30,8 +43,10 @@ type Actions = {
   loadDemo: () => void;
   /** Returns the id of the created expense. Creates a session if none exists. */
   addExpense: (input: NewExpense) => string;
-  updateExpense: (id: string, patch: Partial<Omit<Expense, 'id'>>) => void;
+  /** Partial update. A changed decision / original price / frequency resets the execution state (see engine/lifecycle). */
+  updateExpense: (id: string, patch: ExpensePatch) => void;
   removeExpense: (id: string) => void;
+  /** Changing the decision resets the action status and reported price; setting the same decision is a no-op. */
   setDecision: (id: string, decision: Decision) => void;
   setTargetPrice: (id: string, cents: number | undefined) => void;
   setActionStatus: (id: string, status: ActionStatus, reportedNewPriceCents?: number) => void;
@@ -60,23 +75,31 @@ export const useAuditStore = create<State & Actions>()(
         if (!s) return;
         set({ session: { ...fn(s), updatedAt: now() } });
       };
-      const patchExpense = (id: string, patch: Partial<Omit<Expense, 'id'>>) =>
-        mutate((s) => ({
-          ...s,
-          expenses: s.expenses.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+      const change = (id: string, fn: (e: Expense) => Expense) => {
+        const s = get().session;
+        const current = s?.expenses.find((e) => e.id === id);
+        if (!current) return;
+        const updated = fn(current);
+        if (updated === current) return; // nothing changed
+        mutate((sess) => ({
+          ...sess,
+          expenses: sess.expenses.map((e) => (e.id === id ? updated : e)),
         }));
+      };
 
       return {
         session: null,
         isDemo: false,
 
         startSession: (expenses, { isDemo }) =>
-          set({ session: newSession(expenses), isDemo }),
+          set({ session: newSession(stripTransactionIds(expenses)), isDemo }),
 
         loadDemo: () =>
           set({
             session: newSession(
-              DEMO_EXPENSES.map((e) => ({ ...e, reasons: [...e.reasons], flags: [...e.flags] })),
+              stripTransactionIds(
+                DEMO_EXPENSES.map((e) => ({ ...e, reasons: [...e.reasons], flags: [...e.flags] })),
+              ),
               { ...DEMO_GOAL },
             ),
             isDemo: true,
@@ -84,17 +107,19 @@ export const useAuditStore = create<State & Actions>()(
 
         addExpense: (input) => {
           const id = input.id ?? uid();
-          const expense: Expense = {
-            category: 'Other',
-            confidence: 'manual',
-            reasons: ['Added manually'],
-            flags: [],
-            transactionIds: [],
-            decision: 'undecided',
-            actionStatus: 'not_started',
-            ...input,
-            id,
-          };
+          const [expense] = stripTransactionIds([
+            {
+              category: 'Other',
+              confidence: 'manual',
+              reasons: ['Added manually'],
+              flags: [],
+              transactionIds: [],
+              decision: 'undecided',
+              actionStatus: 'not_started',
+              ...input,
+              id,
+            },
+          ]);
           if (!get().session) {
             set({ session: newSession([expense]), isDemo: false });
           } else {
@@ -103,21 +128,21 @@ export const useAuditStore = create<State & Actions>()(
           return id;
         },
 
-        updateExpense: (id, patch) => patchExpense(id, patch),
+        updateExpense: (id, patch) =>
+          change(id, (e) => {
+            const updated = applyExpensePatch(e, patch);
+            return updated.transactionIds.length === 0 ? updated : stripTransactionIds([updated])[0];
+          }),
 
         removeExpense: (id) =>
           mutate((s) => ({ ...s, expenses: s.expenses.filter((e) => e.id !== id) })),
 
-        setDecision: (id, decision) => patchExpense(id, { decision }),
+        setDecision: (id, decision) => change(id, (e) => applyDecision(e, decision)),
 
-        setTargetPrice: (id, cents) => patchExpense(id, { targetPriceCents: cents }),
+        setTargetPrice: (id, cents) => change(id, (e) => applyExpensePatch(e, { targetPriceCents: cents })),
 
         setActionStatus: (id, status, reportedNewPriceCents) =>
-          patchExpense(id, {
-            actionStatus: status,
-            reportedNewPriceCents: status === 'completed' ? reportedNewPriceCents : undefined,
-            completedAt: status === 'completed' ? now() : undefined,
-          }),
+          change(id, (e) => applyActionStatus(e, status, reportedNewPriceCents)),
 
         setGoal: (goal) => mutate((s) => ({ ...s, goal })),
 
@@ -134,9 +159,19 @@ export const useAuditStore = create<State & Actions>()(
     },
     {
       name: STORAGE_KEY,
-      version: 1,
+      version: STORAGE_VERSION,
+      migrate: (persisted, version) => migratePersisted(persisted, version) as State & Actions,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ session: s.session, isDemo: s.isDemo }),
+      // Validates persisted state and drops orphaned execution state; idempotent, so it is safe on every load.
+      merge: (persisted, current) => {
+        const safe = sanitizePersisted(persisted);
+        return {
+          ...current,
+          ...(Object.prototype.hasOwnProperty.call(safe, 'session') ? { session: safe.session } : {}),
+          ...(Object.prototype.hasOwnProperty.call(safe, 'isDemo') ? { isDemo: safe.isDemo } : {}),
+        };
+      },
     },
   ),
 );

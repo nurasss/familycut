@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { fallbackAction } from '@/lib/ai/fallback';
 import { generateWithGrok } from '@/lib/ai/grok';
 import { checkRateLimit, clientIp } from '@/lib/ai/rateLimit';
+import { sanitizeActionRequest } from '@/lib/ai/safe-request';
 import { actionRequestSchema } from '@/lib/schemas';
 
 // Request bodies are tiny; reject anything large before parsing.
@@ -32,8 +33,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
   }
 
-  // Only the validated ActionRequest fields reach the model. No content is logged.
-  const ai = await generateWithGrok(parsed.data);
+  // Only the validated ActionRequest fields reach the model, and the merchant is reduced to a known canonical name
+  // or "Service provider" regardless of what the client sent. Nothing is logged. The local fallback (never sent to
+  // a third party) keeps the name the user typed.
+  const ai = await generateWithGrok(sanitizeActionRequest(parsed.data));
   return NextResponse.json(ai ?? fallbackAction(parsed.data), {
     headers: { 'Cache-Control': 'no-store' },
   });

@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-11-14T19:40:47.541455+00:00",
+  "scope": "Read-only curl HTTPS availability; does not prove deployment matches local tree or browser usability",
+  "results": [
+    {
+      "url": "https://familycut.vercel.app/",
+      "status": "200",
+      "title": "FamilyCut \u2014 find the bills you can cut",
+      "currentLandingPrivacyCopy": false,
+      "error": null
+    },
+    {
+      "url": "https://github.com/nurasss/familycut",
+      "status": "200",
+      "title": "GitHub - nurasss/familycut: FamilyCut \u2014 find the recurring bills your family can cut. Business Cup 2.0 MVP. \u00b7 GitHub",
+      "currentLandingPrivacyCopy": null,
+      "error": null
+    }
+  ]
+}

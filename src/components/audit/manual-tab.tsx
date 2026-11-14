@@ -274,7 +274,9 @@ export function ManualTab() {
           Add a recurring bill or subscription
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Enter amounts in USD. Everything stays in your browser.
+          Enter amounts in USD. Entries are saved locally in your browser;
+          optional AI script generation only sends one selected bill&apos;s
+          summary fields.
         </p>
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-12">

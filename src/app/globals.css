@@ -24,6 +24,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-savings: var(--savings);
+  --color-savings-text: var(--savings-text);
   --color-savings-bg: var(--savings-bg);
   --color-chip-cut: var(--chip-cut);
   --color-chip-cut-bg: var(--chip-cut-bg);
@@ -59,7 +60,8 @@
   --radius: 0.5rem;
 
   /* FamilyCut semantic tokens */
-  --savings: #16A34A;
+  --savings: #15803D;
+  --savings-text: #166534;
   --savings-bg: #DCFCE7;
   --chip-cut: #B91C1C;
   --chip-cut-bg: #FEE2E2;

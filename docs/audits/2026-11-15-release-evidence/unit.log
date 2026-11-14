@@ -1,0 +1,13 @@
+
+> businesscup@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.12 /Users/nuras/Desktop/businesscup
+
+
+ Test Files  12 passed (12)
+      Tests  350 passed (350)
+   Start at  00:44:41
+   Duration  20.74s (transform 2.83s, setup 0ms, import 14.11s, tests 11.66s, environment 8ms)
+

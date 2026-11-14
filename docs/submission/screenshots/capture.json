@@ -1,0 +1,13 @@
+{
+  "capturedAt": "2026-11-14T20:00:39.866Z",
+  "source": "http://localhost:3211",
+  "data": "Fictional Miller family, Sample data. No user records.",
+  "ai": "Intercepted locally with HTTP 503; personalized Template shown.",
+  "files": [
+    "01-landing.png",
+    "02-results.png",
+    "03-action-template.png",
+    "04-mobile-results.png",
+    "05-negotiation-template.png"
+  ]
+}

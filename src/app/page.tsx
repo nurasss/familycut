@@ -72,7 +72,9 @@ export default function HomePage() {
               <p className="mt-5 flex items-center gap-2 text-xs text-muted-foreground sm:text-sm">
                 <Lock className="size-3.5 shrink-0" aria-hidden="true" />
                 <span>
-                  No signup. No bank login. Your CSV stays in your browser.
+                  No signup. No bank login. Your CSV is processed in your
+                  browser; optional AI script generation sends only one
+                  selected bill&apos;s summary fields.
                 </span>
               </p>
             </div>
@@ -102,7 +104,7 @@ export default function HomePage() {
                     <p className="text-xs font-medium leading-snug text-primary">
                       Potential annual savings (estimate)
                     </p>
-                    <p className="mt-1.5 text-lg font-bold text-[var(--savings)] tabular-nums">
+                    <p className="mt-1.5 text-lg font-bold text-[var(--savings-text)] tabular-nums">
                       {formatUsd(demoTotals.potentialAnnualCents)}
                     </p>
                   </div>
@@ -160,7 +162,7 @@ export default function HomePage() {
                     <span className="text-foreground">
                       Target: {DEMO_GOAL.name}
                     </span>
-                    <span className="text-[var(--savings)] tabular-nums">
+                    <span className="text-[var(--savings-text)] tabular-nums">
                       {plannedPct}%
                     </span>
                   </div>
@@ -291,12 +293,15 @@ export default function HomePage() {
               </span>
               <div>
                 <h2 className="text-base font-bold text-foreground">
-                  Local-Only Data Processing
+                  Browser-First Data Processing
                 </h2>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  Your CSV is processed in your browser. Raw transactions are
-                  not uploaded to our server. Saved audits stay on this device
-                  until you delete them.
+                  Your CSV and pasted lines are processed in your browser. Raw
+                  transactions are not uploaded to our server. Saved audits stay
+                  on this device until you delete them. When generating a message
+                  on the Action plan, only the minimal fields of that one
+                  expense (merchant, action, frequency, price, optional target
+                  price, and tone) are sent to our AI endpoint.
                 </p>
               </div>
             </div>

@@ -15,8 +15,12 @@ const BRANDS: [RegExp, string][] = [
   [/\bHBO\s*MAX\b|\bHBOMAX\b/, 'HBO Max'],
   [/\bPARAMOUNT\s*(\+|PLUS)/, 'Paramount+'],
   [/\bPEACOCK\b/, 'Peacock'],
-  [/\bYOUTUBE\s*(PREMIUM|MUSIC|TV)\b|\bGOOGLE\s*\*?\s*YOUTUBE\b/, 'YouTube Premium'],
-  [/\bYOUTUBE\b/, 'YouTube'],
+  // YouTube products are billed separately; never merge them. A bare "GOOGLE *YOUTUBE" does not say which
+  // product it is, so it stays plain "YouTube" instead of guessing.
+  [/\bYOUTUBE\s*TV\b/, 'YouTube TV'],
+  [/\bYOUTUBE\s*MUSIC\b/, 'YouTube Music'],
+  [/\bYOUTUBE\s*PREMIUM\b|\bYOUTUBEPREMIUM\b/, 'YouTube Premium'],
+  [/\bYOUTUBE\b|\bGOOGLE\s*\*?\s*YOUTUBE/, 'YouTube'],
   [/\bNYT\b|\bNY\s*TIMES\b|\bNEW\s*YORK\s*TIMES\b|\bNYTIMES\b/, 'New York Times'],
   [/\bPELOTON\b/, 'Peloton'],
   [/\bADT\b/, 'ADT'],
@@ -28,6 +32,13 @@ const BRANDS: [RegExp, string][] = [
   [/\bICLOUD\b/, 'iCloud'],
   [/\bGOOGLE\s*\*?\s*ONE\b/, 'Google One'],
   [/\bDROPBOX\b/, 'Dropbox'],
+  // Known Adobe products are separate services. Anything else from Adobe stays plain "Adobe".
+  [/\bPHOTOSHOP\b/, 'Adobe Photoshop'],
+  [/\bACROBAT\b/, 'Adobe Acrobat'],
+  [/\bLIGHTROOM\b/, 'Adobe Lightroom'],
+  [/\bILLUSTRATOR\b/, 'Adobe Illustrator'],
+  [/\bPREMIERE\b/, 'Adobe Premiere'],
+  [/\bINDESIGN\b/, 'Adobe InDesign'],
   [/\bADOBE\b/, 'Adobe'],
   [/\bMICROSOFT\s*\*?\s*(365|OFFICE)\b|\bM365\b|\bMSFT\s*\*?\s*(365|OFFICE)\b/, 'Microsoft 365'],
   [/\bMICROSOFT\b|\bMSFT\b/, 'Microsoft'],
@@ -49,6 +60,9 @@ const BRANDS: [RegExp, string][] = [
   [/\bMCDONALD'?S?\b/, "McDonald's"],
   [/\bCHIPOTLE\b/, 'Chipotle'],
 ];
+
+/** Canonical names produced by explicit brand rules above (not arbitrary Title Case output). */
+export const KNOWN_BRAND_NAMES: readonly string[] = [...new Set(BRANDS.map(([, name]) => name))];
 
 const US_STATES = new Set(
   'AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC'.split(

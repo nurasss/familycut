@@ -111,6 +111,7 @@ export function ExpenseCard({
     const cents = parsePriceInputToCents(raw);
     if (cents === null) {
       setTargetError("Enter a valid dollar amount");
+      onTargetPriceChange(expense.id, undefined);
       return;
     }
     setTargetError(null);
@@ -201,6 +202,11 @@ export function ExpenseCard({
                 {reasons.join(" · ")}
               </p>
             )}
+            {expense.frequency === "yearly" && (
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Billed yearly: savings may start at your next renewal.
+              </p>
+            )}
           </div>
 
           <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end">
@@ -249,6 +255,7 @@ export function ExpenseCard({
                 value={merchantDraft}
                 onChange={(e) => setMerchantDraft(e.target.value)}
                 maxLength={80}
+                aria-describedby={editError ? `${uid}-edit-error` : undefined}
                 className="mt-1 min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground"
               />
             </div>
@@ -266,6 +273,7 @@ export function ExpenseCard({
                 inputMode="decimal"
                 value={priceDraft}
                 onChange={(e) => setPriceDraft(e.target.value)}
+                aria-describedby={editError ? `${uid}-edit-error` : undefined}
                 className="mt-1 min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground tabular-nums"
               />
             </div>
@@ -293,7 +301,11 @@ export function ExpenseCard({
           </div>
 
           {editError && (
-            <p role="alert" className="text-xs text-[var(--chip-cut)]">
+            <p
+              id={`${uid}-edit-error`}
+              role="alert"
+              className="text-xs text-[var(--chip-cut)]"
+            >
               {editError}
             </p>
           )}
@@ -382,15 +394,22 @@ export function ExpenseCard({
               onChange={(e) => handleTargetChange(e.target.value)}
               placeholder="60.00"
               aria-invalid={targetError ? "true" : undefined}
+              aria-describedby={targetError ? `${uid}-target-error` : undefined}
               className="min-h-11 w-28 rounded-lg border border-input bg-card px-3 text-sm text-foreground tabular-nums"
             />
           </div>
 
           <div className="text-xs font-medium">
             {targetError ? (
-              <span className="text-[var(--chip-cut)]">{targetError}</span>
+              <span
+                id={`${uid}-target-error`}
+                role="alert"
+                className="text-[var(--chip-cut)]"
+              >
+                {targetError}
+              </span>
             ) : negotiateSavingsCents !== null ? (
-              <span className="font-semibold text-[var(--savings)] tabular-nums">
+              <span className="font-semibold text-[var(--savings-text)] tabular-nums">
                 Saves {formatUsd(negotiateSavingsCents)}/yr (estimate)
               </span>
             ) : (

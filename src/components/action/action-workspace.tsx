@@ -13,7 +13,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { fallbackAction } from "@/lib/ai/fallback";
-import { MULTIPLIER, annualCents } from "@/lib/engine/money";
+import { buildSafeActionRequest } from "@/lib/ai/safe-request";
+import { MULTIPLIER, annualCents, computeTotals } from "@/lib/engine/money";
 import { formatUsd } from "@/lib/format";
 import { actionResponseSchema } from "@/lib/schemas";
 import { useAuditStore } from "@/lib/store";
@@ -36,10 +37,19 @@ import {
   centsToInputValue,
   parsePriceInputToCents,
 } from "@/components/money-input";
+import { TryDemoConfirmDialog } from "@/components/demo/try-demo-confirm-dialog";
+import { useTryDemo } from "@/components/demo/use-try-demo";
 import { useHasHydrated } from "@/components/use-hydrated";
 import { cn } from "@/lib/utils";
 
 type ChannelTab = "email" | "script";
+
+const CLIENT_DEADLINE_MS = 8500;
+const TONES: ActionTone[] = ["polite", "firm"];
+const CHANNELS: { value: ChannelTab; label: string }[] = [
+  { value: "email", label: "Email" },
+  { value: "script", label: "Phone / chat script" },
+];
 
 const STATUS_OPTIONS: { value: ActionStatus; label: string }[] = [
   { value: "not_started", label: "Not started" },
@@ -64,24 +74,6 @@ function renderWithPlaceholders(text: string) {
   });
 }
 
-function buildStrictRequest(
-  expense: Expense,
-  tone: ActionTone,
-): ActionRequest {
-  const action = expense.decision === "cut" ? "cut" : "negotiate";
-  const req: ActionRequest = {
-    merchant: expense.merchant.slice(0, 80),
-    action,
-    frequency: expense.frequency,
-    currentPriceCents: expense.priceCents,
-    tone,
-  };
-  if (expense.targetPriceCents !== undefined) {
-    req.targetPriceCents = expense.targetPriceCents;
-  }
-  return req;
-}
-
 function ActionDetail({
   expense,
   onStatusChange,
@@ -99,10 +91,11 @@ function ActionDetail({
     expense.decision === "cut" ? "email" : "script",
   );
   const [regenCount, setRegenCount] = useState(0);
-  const [draft, setDraft] = useState<{
+  const [aiDraft, setAiDraft] = useState<{
     key: string;
     response: ActionResponse;
   } | null>(null);
+  const [settledKey, setSettledKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [checkedSteps, setCheckedSteps] = useState<Record<string, boolean>>({});
   const [reportedPriceDraft, setReportedPriceDraft] = useState(() =>
@@ -115,41 +108,99 @@ function ActionDetail({
   );
 
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toneRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const channelRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const statusRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  const requestKey = `${expense.id}|${expense.decision}|${expense.merchant}|${expense.frequency}|${expense.priceCents}|${expense.targetPriceCents ?? "none"}|${tone}|${regenCount}`;
-  const loading = draft === null || draft.key !== requestKey;
-  const actionData = draft?.key === requestKey ? draft.response : null;
+  const expenseId = expense.id;
+  const rawSafeRequest = buildSafeActionRequest(expense, tone);
+  const safeMerchant = rawSafeRequest.merchant;
+  const safeAction = rawSafeRequest.action;
+  const safeFrequency = rawSafeRequest.frequency;
+  const safeCurrentPriceCents = rawSafeRequest.currentPriceCents;
+  const safeTargetPriceCents = rawSafeRequest.targetPriceCents;
+  const safeTone = rawSafeRequest.tone;
+
+  const requestPayload = useMemo<ActionRequest>(() => {
+    const req: ActionRequest = {
+      merchant: safeMerchant,
+      action: safeAction,
+      frequency: safeFrequency,
+      currentPriceCents: safeCurrentPriceCents,
+      tone: safeTone,
+    };
+    if (safeTargetPriceCents !== undefined) {
+      req.targetPriceCents = safeTargetPriceCents;
+    }
+    return req;
+  }, [
+    safeMerchant,
+    safeAction,
+    safeFrequency,
+    safeCurrentPriceCents,
+    safeTargetPriceCents,
+    safeTone,
+  ]);
+
+  const requestKey = `${expenseId}|${safeAction}|${safeMerchant}|${safeFrequency}|${safeCurrentPriceCents}|${safeTargetPriceCents ?? "none"}|${safeTone}|${regenCount}`;
+  const templateFallback = useMemo(
+    () =>
+      fallbackAction({
+        ...requestPayload,
+        merchant: expense.merchant,
+      }),
+    [requestPayload, expense.merchant],
+  );
+
+  const isEnhancing = settledKey !== requestKey;
+  const actionData =
+    aiDraft?.key === requestKey && aiDraft.response.source === "ai"
+      ? aiDraft.response
+      : templateFallback;
 
   useEffect(() => {
     const controller = new AbortController();
-    const payload = buildStrictRequest(expense, tone);
+    let active = true;
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, CLIENT_DEADLINE_MS);
 
     const run = async () => {
       try {
         const res = await fetch("/api/ai/action", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(requestPayload),
           signal: controller.signal,
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json: unknown = await res.json();
         const parsed = actionResponseSchema.safeParse(json);
         if (!parsed.success) throw new Error("Invalid response schema");
-        if (!controller.signal.aborted) {
-          setDraft({ key: requestKey, response: parsed.data });
+        if (
+          active &&
+          !controller.signal.aborted &&
+          parsed.data.source === "ai"
+        ) {
+          setAiDraft({ key: requestKey, response: parsed.data });
         }
-      } catch (err) {
-        if (err instanceof DOMException && err.name === "AbortError") return;
-        if (!controller.signal.aborted) {
-          setDraft({ key: requestKey, response: fallbackAction(payload) });
+      } catch {
+        // Keep immediate Template fallback on timeout, network, HTTP, or schema failure
+      } finally {
+        clearTimeout(timeoutId);
+        if (active) {
+          setSettledKey(requestKey);
         }
       }
     };
 
     void run();
-    return () => controller.abort();
-  }, [requestKey, expense, tone]);
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [requestKey, requestPayload]);
 
   useEffect(() => {
     return () => {
@@ -257,6 +308,70 @@ function ActionDetail({
     return `You pay ${current} · No target price set (add one on Review to estimate savings)`;
   }, [expense, freqShort]);
 
+  const itemTotals = useMemo(() => computeTotals([expense]), [expense]);
+
+  const handleToneKeyDown = (
+    e: React.KeyboardEvent<HTMLButtonElement>,
+    idx: number,
+  ) => {
+    let nextIdx: number | null = null;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      nextIdx = (idx + 1) % TONES.length;
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      nextIdx = (idx - 1 + TONES.length) % TONES.length;
+    } else if (e.key === "Home") {
+      nextIdx = 0;
+    } else if (e.key === "End") {
+      nextIdx = TONES.length - 1;
+    }
+    if (nextIdx !== null) {
+      e.preventDefault();
+      setTone(TONES[nextIdx]);
+      setCopied(false);
+      toneRefs.current[nextIdx]?.focus();
+    }
+  };
+
+  const handleChannelKeyDown = (
+    e: React.KeyboardEvent<HTMLButtonElement>,
+    idx: number,
+  ) => {
+    let nextIdx: number | null = null;
+    if (e.key === "ArrowRight") nextIdx = (idx + 1) % CHANNELS.length;
+    else if (e.key === "ArrowLeft")
+      nextIdx = (idx - 1 + CHANNELS.length) % CHANNELS.length;
+    else if (e.key === "Home") nextIdx = 0;
+    else if (e.key === "End") nextIdx = CHANNELS.length - 1;
+
+    if (nextIdx !== null) {
+      e.preventDefault();
+      setChannel(CHANNELS[nextIdx].value);
+      setCopied(false);
+      channelRefs.current[nextIdx]?.focus();
+    }
+  };
+
+  const handleStatusKeyDown = (
+    e: React.KeyboardEvent<HTMLButtonElement>,
+    idx: number,
+  ) => {
+    let nextIdx: number | null = null;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      nextIdx = (idx + 1) % STATUS_OPTIONS.length;
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      nextIdx = (idx - 1 + STATUS_OPTIONS.length) % STATUS_OPTIONS.length;
+    } else if (e.key === "Home") {
+      nextIdx = 0;
+    } else if (e.key === "End") {
+      nextIdx = STATUS_OPTIONS.length - 1;
+    }
+    if (nextIdx !== null) {
+      e.preventDefault();
+      handleStatusSelect(STATUS_OPTIONS[nextIdx].value);
+      statusRefs.current[nextIdx]?.focus();
+    }
+  };
+
   const limitationsList = useMemo(() => {
     const core =
       "You must contact the provider yourself. FamilyCut does not cancel or negotiate on your behalf.";
@@ -283,6 +398,11 @@ function ActionDetail({
             <p className="mt-1.5 text-sm text-muted-foreground tabular-nums">
               {summaryText}
             </p>
+            {expense.frequency === "yearly" && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Billed yearly: savings may start at your next renewal.
+              </p>
+            )}
           </div>
 
           <div
@@ -290,18 +410,23 @@ function ActionDetail({
             aria-label="Message tone"
             className="inline-flex rounded-lg border border-border bg-background p-1"
           >
-            {(["polite", "firm"] as const).map((t) => {
+            {TONES.map((t, idx) => {
               const selected = tone === t;
               return (
                 <button
                   key={t}
+                  ref={(el) => {
+                    toneRefs.current[idx] = el;
+                  }}
                   type="button"
                   role="radio"
                   aria-checked={selected}
+                  tabIndex={selected ? 0 : -1}
                   onClick={() => {
                     setTone(t);
                     setCopied(false);
                   }}
+                  onKeyDown={(e) => handleToneKeyDown(e, idx)}
                   className={cn(
                     "inline-flex min-h-9 items-center rounded-md px-3 text-xs font-semibold capitalize transition-colors",
                     selected
@@ -322,89 +447,86 @@ function ActionDetail({
             aria-label="Message format"
             className="inline-flex rounded-lg border border-border bg-background p-1"
           >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={channel === "email"}
-              onClick={() => {
-                setChannel("email");
-                setCopied(false);
-              }}
-              className={cn(
-                "inline-flex min-h-10 items-center gap-1.5 rounded-md px-3.5 text-xs font-semibold transition-colors",
-                channel === "email"
-                  ? "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Mail className="size-3.5" aria-hidden="true" />
-              <span>Email</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={channel === "script"}
-              onClick={() => {
-                setChannel("script");
-                setCopied(false);
-              }}
-              className={cn(
-                "inline-flex min-h-10 items-center gap-1.5 rounded-md px-3.5 text-xs font-semibold transition-colors",
-                channel === "script"
-                  ? "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Phone className="size-3.5" aria-hidden="true" />
-              <span>Phone / chat script</span>
-            </button>
+            {CHANNELS.map((ch, idx) => {
+              const selected = channel === ch.value;
+              return (
+                <button
+                  key={ch.value}
+                  ref={(el) => {
+                    channelRefs.current[idx] = el;
+                  }}
+                  id={`${uid}-tab-${ch.value}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  aria-controls={`${uid}-tabpanel-${ch.value}`}
+                  tabIndex={selected ? 0 : -1}
+                  onClick={() => {
+                    setChannel(ch.value);
+                    setCopied(false);
+                  }}
+                  onKeyDown={(e) => handleChannelKeyDown(e, idx)}
+                  className={cn(
+                    "relative inline-flex min-h-10 items-center gap-1.5 rounded-md px-3.5 text-xs font-semibold transition-colors",
+                    selected
+                      ? "bg-card text-foreground shadow-xs after:pointer-events-none after:absolute after:inset-x-2.5 after:bottom-0 after:border-b-2 after:border-primary"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {ch.value === "email" ? (
+                    <Mail className="size-3.5" aria-hidden="true" />
+                  ) : (
+                    <Phone className="size-3.5" aria-hidden="true" />
+                  )}
+                  <span>{ch.label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          {!loading && actionData && (
+          <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center rounded-full border border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-muted-foreground">
               {actionData.source === "ai"
                 ? "Written by AI · review before sending"
                 : "Template"}
             </span>
-          )}
+            {isEnhancing && actionData.source !== "ai" && (
+              <span className="text-xs text-muted-foreground">
+                Refining draft…
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="mt-4 rounded-xl border border-border bg-background/70 p-4 sm:p-5">
-          {loading ? (
-            <div
-              className="space-y-3"
-              aria-busy="true"
-              aria-label="Preparing message draft"
-            >
-              <div className="h-4 w-48 animate-pulse rounded bg-muted" />
-              <div className="h-4 w-full animate-pulse rounded bg-muted" />
-              <div className="h-4 w-11/12 animate-pulse rounded bg-muted" />
-              <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {displayedSubject && (
-                <div className="border-b border-border pb-2.5 text-sm">
-                  <span className="font-semibold text-muted-foreground">
-                    Subject:{" "}
-                  </span>
-                  <span className="font-semibold text-foreground">
-                    {renderWithPlaceholders(displayedSubject)}
-                  </span>
-                </div>
-              )}
-              <div className="whitespace-pre-line text-sm leading-relaxed text-foreground">
-                {renderWithPlaceholders(displayedBody)}
+        <div
+          id={`${uid}-tabpanel-${channel}`}
+          role="tabpanel"
+          aria-labelledby={`${uid}-tab-${channel}`}
+          tabIndex={0}
+          className="mt-4 rounded-xl border border-border bg-background/70 p-4 sm:p-5"
+        >
+          <div className="space-y-3">
+            {displayedSubject && (
+              <div className="border-b border-border pb-2.5 text-sm">
+                <span className="font-semibold text-muted-foreground">
+                  Subject:{" "}
+                </span>
+                <span className="font-semibold text-foreground">
+                  {renderWithPlaceholders(displayedSubject)}
+                </span>
               </div>
+            )}
+            <div className="whitespace-pre-line text-sm leading-relaxed text-foreground">
+              {renderWithPlaceholders(displayedBody)}
             </div>
-          )}
+          </div>
         </div>
 
         <div className="no-print mt-4 flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={() => void handleCopy()}
-            disabled={loading || !displayedBody}
+            disabled={!displayedBody}
             className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-95 disabled:opacity-50 sm:flex-initial"
           >
             {copied ? (
@@ -426,11 +548,11 @@ function ActionDetail({
               setCopied(false);
               setRegenCount((c) => c + 1);
             }}
-            disabled={loading}
+            disabled={isEnhancing}
             className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
           >
             <RefreshCw
-              className={cn("size-4", loading && "animate-spin")}
+              className={cn("size-4", isEnhancing && "animate-spin")}
               aria-hidden="true"
             />
             <span>Regenerate</span>
@@ -508,15 +630,20 @@ function ActionDetail({
           aria-label="Action completion status"
           className="mt-3 flex flex-wrap gap-2"
         >
-          {STATUS_OPTIONS.map((opt) => {
+          {STATUS_OPTIONS.map((opt, idx) => {
             const active = expense.actionStatus === opt.value;
             return (
               <button
                 key={opt.value}
+                ref={(el) => {
+                  statusRefs.current[idx] = el;
+                }}
                 type="button"
                 role="radio"
                 aria-checked={active}
+                tabIndex={active ? 0 : -1}
                 onClick={() => handleStatusSelect(opt.value)}
+                onKeyDown={(e) => handleStatusKeyDown(e, idx)}
                 className={cn(
                   "inline-flex min-h-11 items-center rounded-full border px-4 text-sm font-medium transition-colors",
                   active
@@ -550,8 +677,8 @@ function ActionDetail({
                   />
                 </div>
                 <p className="text-xs font-medium text-primary tabular-nums">
-                  Reported {formatUsd(annualCents(expense.priceCents, expense.frequency))}
-                  /yr (not bank-verified)
+                  Reported {formatUsd(itemTotals.reportedAnnualCents)}/yr (not
+                  bank-verified)
                 </p>
               </div>
             ) : (
@@ -572,6 +699,11 @@ function ActionDetail({
                       onChange={(e) => handleReportedPriceChange(e.target.value)}
                       placeholder={`e.g. ${centsToInputValue(expense.targetPriceCents ?? expense.priceCents)}`}
                       aria-invalid={reportedPriceError ? "true" : undefined}
+                      aria-describedby={
+                        reportedPriceError
+                          ? `${uid}-reported-price-error`
+                          : undefined
+                      }
                       className="min-h-11 w-32 rounded-lg border border-input bg-card px-3 text-sm font-semibold text-foreground tabular-nums placeholder:font-normal placeholder:text-muted-foreground/70"
                     />
                   </div>
@@ -579,8 +711,7 @@ function ActionDetail({
                     <p
                       className={cn(
                         "text-xs font-medium tabular-nums",
-                        expense.reportedNewPriceCents === undefined ||
-                          expense.reportedNewPriceCents >= expense.priceCents
+                        itemTotals.reportedAnnualCents <= 0
                           ? "text-muted-foreground"
                           : "text-primary",
                       )}
@@ -588,14 +719,18 @@ function ActionDetail({
                       {!reportedPriceDraft.trim() ||
                       expense.reportedNewPriceCents === undefined
                         ? "Enter the new price to count self-reported savings"
-                        : expense.reportedNewPriceCents >= expense.priceCents
+                        : itemTotals.reportedAnnualCents <= 0
                           ? "No savings at this price"
-                          : `Reported ${formatUsd((expense.priceCents - expense.reportedNewPriceCents) * MULTIPLIER[expense.frequency])}/yr · Counts as self-reported savings (not bank-verified)`}
+                          : `Reported ${formatUsd(itemTotals.reportedAnnualCents)}/yr · Counts as self-reported savings (not bank-verified)`}
                     </p>
                   )}
                 </div>
                 {reportedPriceError && (
-                  <p role="alert" className="mt-1.5 text-xs text-[var(--chip-cut)]">
+                  <p
+                    id={`${uid}-reported-price-error`}
+                    role="alert"
+                    className="mt-1.5 text-xs text-[var(--chip-cut)]"
+                  >
                     {reportedPriceError}
                   </p>
                 )}
@@ -610,15 +745,21 @@ function ActionDetail({
 
 export function ActionWorkspace({
   selectedIdFromRoute,
+  hasExplicitRouteId = false,
+  isRouteLoading = false,
 }: {
   selectedIdFromRoute?: string;
+  hasExplicitRouteId?: boolean;
+  isRouteLoading?: boolean;
 }) {
   const uid = useId();
   const router = useRouter();
   const hydrated = useHasHydrated();
   const session = useAuditStore((s) => s.session);
   const isDemo = useAuditStore((s) => s.isDemo);
-  const loadDemo = useAuditStore((s) => s.loadDemo);
+  const { requestTryDemo, dialogProps: tryDemoDialogProps } = useTryDemo({
+    redirectTo: "/action",
+  });
   const setActionStatus = useAuditStore((s) => s.setActionStatus);
 
   const actionExpenses = useMemo(
@@ -629,20 +770,22 @@ export function ActionWorkspace({
     [session],
   );
 
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const hasRouteId = hasExplicitRouteId || selectedIdFromRoute !== undefined;
+  const normalizedRouteId = (selectedIdFromRoute ?? "").trim();
 
   const activeExpense = useMemo(() => {
     if (actionExpenses.length === 0) return null;
-    const preferredId = selectedId ?? selectedIdFromRoute;
-    if (preferredId) {
-      const found = actionExpenses.find((e) => e.id === preferredId);
-      if (found) return found;
+    if (hasRouteId) {
+      if (!normalizedRouteId) return null;
+      return actionExpenses.find((e) => e.id === normalizedRouteId) ?? null;
     }
     return actionExpenses[0];
-  }, [actionExpenses, selectedId, selectedIdFromRoute]);
+  }, [actionExpenses, hasRouteId, normalizedRouteId]);
+
+  const isMissingRequestedExpense =
+    hydrated && !isRouteLoading && hasRouteId && !activeExpense;
 
   const handleSelectExpense = (id: string) => {
-    setSelectedId(id);
     router.replace(`/action?id=${encodeURIComponent(id)}`, { scroll: false });
   };
 
@@ -651,7 +794,7 @@ export function ActionWorkspace({
       <SiteHeader variant="app" currentStep={3} />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
-        {!hydrated ? (
+        {!hydrated || isRouteLoading ? (
           <div
             className="space-y-4"
             aria-busy="true"
@@ -659,6 +802,33 @@ export function ActionWorkspace({
           >
             <div className="h-9 w-60 animate-pulse rounded-lg bg-muted" />
             <div className="h-72 animate-pulse rounded-xl bg-muted" />
+          </div>
+        ) : isMissingRequestedExpense ? (
+          <div className="mx-auto max-w-xl rounded-xl border border-border bg-card p-8 text-center">
+            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              Action plan unavailable
+            </p>
+            <h1 className="mt-2 text-2xl font-extrabold text-foreground">
+              Expense not found
+            </h1>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              This link points to an expense that does not exist, was removed,
+              or is not marked as Cut or Negotiate.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/results"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground"
+              >
+                Back to Review
+              </Link>
+              <Link
+                href="/audit"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-card px-5 text-sm font-semibold text-foreground hover:bg-muted"
+              >
+                Import or edit expenses
+              </Link>
+            </div>
           </div>
         ) : actionExpenses.length === 0 || !activeExpense ? (
           <div className="mx-auto max-w-xl rounded-xl border border-border bg-card p-8 text-center">
@@ -678,10 +848,7 @@ export function ActionWorkspace({
               </Link>
               <button
                 type="button"
-                onClick={() => {
-                  loadDemo();
-                  router.push("/action");
-                }}
+                onClick={requestTryDemo}
                 className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-card px-5 text-sm font-semibold text-foreground hover:bg-muted"
               >
                 Try demo
@@ -699,8 +866,11 @@ export function ActionWorkspace({
                   {isDemo && <SampleDataBadge />}
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Copy your personalized message, reach out to the provider, and
-                  update your progress below.
+                  Copy your message, contact the provider yourself, and update
+                  your progress below. Only the selected bill&apos;s summary
+                  fields (merchant, action, frequency, price, optional target,
+                  and tone) are sent to request an AI draft; local templates
+                  work immediately.
                 </p>
               </div>
 
@@ -804,6 +974,8 @@ export function ActionWorkspace({
           </div>
         )}
       </main>
+
+      <TryDemoConfirmDialog {...tryDemoDialogProps} />
 
       <SiteFooter />
     </div>

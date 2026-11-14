@@ -20,6 +20,12 @@ export type Transaction = {
   amountCents: number;
   isRefund: boolean;
   currency: 'USD';
+  /**
+   * Position of the source row in import preview (`rawIndex`). In-memory only: Transaction is never persisted,
+   * sent to the server, or included in ActionRequest. Set by the import adapter; rows without it cannot be
+   * assigned to a manual group.
+   */
+  sourceIndex?: number;
 };
 
 export type Expense = {

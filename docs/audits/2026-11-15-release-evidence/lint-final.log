@@ -1,0 +1,11 @@
+
+> businesscup@0.1.0 lint
+> eslint
+
+
+/Users/nuras/Desktop/businesscup/brag-output/work/audio.mjs
+  16:45  warning  'lp' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  53:43  warning  'i' is defined but never used            @typescript-eslint/no-unused-vars
+
+✖ 2 problems (0 errors, 2 warnings)
+

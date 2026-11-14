@@ -110,6 +110,7 @@ export function FamilyGoalCard({
               }}
               placeholder="Family trip"
               maxLength={60}
+              aria-describedby={error ? `${uid}-goal-error` : undefined}
               className="mt-1 min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
             />
           </div>
@@ -131,12 +132,17 @@ export function FamilyGoalCard({
                 if (error) setError(null);
               }}
               placeholder="1500.00"
+              aria-describedby={error ? `${uid}-goal-error` : undefined}
               className="mt-1 min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground tabular-nums"
             />
           </div>
 
           {error && (
-            <p role="alert" className="text-xs text-[var(--chip-cut)]">
+            <p
+              id={`${uid}-goal-error`}
+              role="alert"
+              className="text-xs text-[var(--chip-cut)]"
+            >
               {error}
             </p>
           )}
@@ -179,7 +185,7 @@ export function FamilyGoalCard({
           <div>
             <div className="flex items-center justify-between gap-2 text-xs font-semibold">
               <span className="text-foreground">Planned savings progress</span>
-              <span className="text-[var(--savings)] tabular-nums">
+              <span className="text-[var(--savings-text)] tabular-nums">
                 {plannedPct}%
               </span>
             </div>
@@ -259,6 +265,11 @@ export function FamilyGoalCard({
             Mark at least one expense as Cut or Negotiate to generate scripts.
           </p>
         )}
+        <p className="mt-2 text-center text-xs leading-relaxed text-muted-foreground">
+          Action drafts send only one selected bill&apos;s summary fields
+          (merchant, action, frequency, price, optional target, tone) to our
+          AI endpoint.
+        </p>
       </div>
     </aside>
   );

@@ -1,0 +1,409 @@
+{
+  "auditDate": "2026-11-14",
+  "recordedAtUTC": "2026-11-14T15:11:48.283975+00:00",
+  "project": "/Users/nuras/Desktop/businesscup",
+  "head": "8869c289479a69995663da16710646efa64afd56",
+  "sourceMatchesSnapshot": true,
+  "sourceFilesChanged": [],
+  "sourceSHA256": {
+    "src/app/favicon.ico": "c28fdd2a4f31e2dc64f653962286da5c82a4cdfc518b242d32812c624e9a19a4",
+    "src/app/layout.tsx": "a6a79e20f13bd06e78532735bc66a9991497421d98ec854b96204a386b47efaf",
+    "src/app/page.tsx": "0ce6a65fbe2040727a30f2170892b425d1a7c66d4194c35afb30e735d6902213",
+    "src/app/globals.css": "ad811e7304429d69be8c75a21245aae893079c7d21b752eb07ae78185e55f097",
+    "src/components/ui-badges.tsx": "9c48c229febe3b8d14fdf98ca6eb4f61bbbac6c2f2c638d0f01b7f12e1efcaaf",
+    "src/components/money-input.ts": "e84a4718e26ea60bda77bfd1e1d6d9c0163c543b444c410a6c98f1d26a872b37",
+    "src/components/use-hydrated.ts": "831b60dfc15887cb4a55b091c03f59a4cac20c5294dfc285c4e5b4ba1aaecde4",
+    "src/lib/schemas.ts": "0bb74425bba69de09dcaab0d30c19377e68a20934de5b5e1d19d8aa6420d33a4",
+    "src/lib/utils.ts": "14300d758170c270c75b057f38fedb3793a5920ea872f0477e29fb131185e8a7",
+    "src/lib/types.ts": "d067d56f85c1d960d7db10a7541809fedf9a2fdda0b5aafc255011641f087663",
+    "src/lib/format.ts": "a71bac1b35178e30a70b1b9ddd8418be50fdf3337abda5f60814f5d81582a910",
+    "src/lib/store.ts": "5be3ca3c3d49dd733ed464f37b1d753533ddf13163245f21dce3ebc1a9a8e88a",
+    "src/lib/ai/fallback.ts": "cb6fa721fbd66408fb03bcf64072ddae645c7ac8ddeabac1f829ab5e718dace3",
+    "src/lib/ai/rateLimit.ts": "f1418d6b1b233dd7db90974e7e5afefa1881dd34d96ca80f103969af2b0d0cc8",
+    "src/lib/ai/grok.ts": "61d6dac8105338f66f00f4f3e679451aae995790b523cecc6fefd84c83f23781",
+    "src/lib/ai/ai.test.ts": "7fb031223e752478e6a8146df25c02f2ff5bd26a5e5f79a7945ef9d14e133148",
+    "src/lib/fixtures/miller.ts": "9a4c198d823ad0c9da1c8ae56c403e9a72bee18f9ceb121a761ac7c03f91da2f",
+    "src/lib/engine/detect.ts": "4ca783038e2fe27f54ced1b23c4bf86cc5c66674851a3e279f73656a1a27394e",
+    "src/lib/engine/parse.ts": "adca5d084cd2e10f001e19fe2fc52ea7c2f4bffbc3412bba340247aed8b14a84",
+    "src/lib/engine/engine.test.ts": "697325f767de1a2e59cefc9cd2903c46a04cf6e381b9c51eba6d4e6818778574",
+    "src/lib/engine/money.test.ts": "e3ecd0c0c5cacd7d1a661a09f9151ebde93b8b9316c96384c334216f8c612f1f",
+    "src/lib/engine/money.ts": "9d8537db633f6855da3abc2fe0241a4f14b14023a477052b298e805e07254912",
+    "src/lib/engine/normalize.ts": "7c5196be743946ecb0917b077e67460bea1b236f094ad14ddd90f58bbfa36d48",
+    "src/components/landing/try-demo-button.tsx": "e39e180e23d9c61dfd016b982f20ea0998fc4cb71ca2245bb398ef2bde6d0720",
+    "src/components/layout/site-header.tsx": "0f1ae64e3b0477522309bcb6c956bdd98e7294f7e4ea8e49abfd22116bbbc2d5",
+    "src/components/layout/site-footer.tsx": "9b224f8f1f2352cdf7522ca714fb0c6b1f316d55db051245d089c67ae2c57456",
+    "src/components/results/family-goal-card.tsx": "deb3ffe554ad80c859ee7c22e9971eb1239365c2a5b851ed5118fc6cea9468c4",
+    "src/components/results/expense-card.tsx": "6e77b15798c6cb0d056268278c49dc55a3ddc3887a6c60767b5dc82eec499735",
+    "src/components/action/action-workspace.tsx": "845b5a74b1aa1750ad6d606c5ecba35e0db29009a7adf76672e0d4e3b8b29efb",
+    "src/components/audit/manual-tab.tsx": "7bcb44579c8a1064241e8379c2697b38e6260b74b54aa08644761806a924b588",
+    "src/components/audit/import-adapter.ts": "a9543c2dc3cf7db84ec5038aead2e79bffe29ecdfdaf253b68af60fa135bada8",
+    "src/components/audit/preview-rows.tsx": "398650f1ae4665da9af47750d5f3cd857a3cafac66b16dbc6cb29fd620893739",
+    "src/components/audit/import-tab.tsx": "cc90c9f01bea1bbc5e83cb75951a0b445aeca70f234053d1a0b191646382a4eb",
+    "src/app/results/page.tsx": "edf6fce167907e93f46efb991cf39bb05c9e607d7036779f9e358a408c9635dd",
+    "src/app/action/page.tsx": "cce349af2b27223ff58f5b9631348b317697c31a1585060b45ab7cba993ed53e",
+    "src/app/audit/page.tsx": "370ed7dc0b621d438ebab8a13bbc4f6d63bce3f4c755ac43645e6c86d8d3107a",
+    "src/app/api/ai/action/route.ts": "2c0c4b9cce9f2e104b55b820c612ad579f7203423d574a2612d1acea9b14a547",
+    "src/app/action/[id]/page.tsx": "62f2ffd61239b61135b3ed2f765227b8ee1c5b7a6a7e69c9f647b1c3ce9b7bbd"
+  },
+  "specification": {
+    "name": "FamilyCut_Единое_ТЗ_2026-11-14(1).docx",
+    "matchesLocalTZAfterTextNormalization": true,
+    "docxTables": 20,
+    "docxDrawings": 0
+  },
+  "checks": {
+    "unit": {
+      "command": "npm test",
+      "exitCode": 0,
+      "passed": 86,
+      "testFiles": 3,
+      "durationSeconds": 3.03
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "finalRun": true
+    },
+    "lint": {
+      "command": "npm run lint",
+      "exitCode": 0,
+      "finalRun": true
+    },
+    "productionBuild": {
+      "command": "npm run build",
+      "exitCode": 0,
+      "runThrough": "playwright.config.ts webServer with NEXT_DIST_DIR=.next-e2e"
+    },
+    "e2e": {
+      "command": "npm run test:e2e",
+      "exitCode": 0,
+      "passed": 8,
+      "durationSeconds": 45.5,
+      "browser": "Installed Google Chrome",
+      "modelKeyDisabled": true
+    },
+    "productionDependencyAudit": {
+      "command": "npm audit --omit=dev --json",
+      "exitCode": 0,
+      "vulnerabilities": 0
+    },
+    "https": {
+      "url": "https://familycut.vercel.app",
+      "status": 200,
+      "hsts": true,
+      "csp": true,
+      "nosniff": true,
+      "frameOptions": "DENY"
+    },
+    "trackedSecretPatternScan": {
+      "trackedFiles": 66,
+      "matches": [],
+      "envLocalTracked": false,
+      "envExampleHasNonemptyValues": false,
+      "historyScanned": false
+    }
+  },
+  "functionObservations": {
+    "parallelServices": {
+      "inputCharges": 6,
+      "expectedServices": 2,
+      "actualServices": 1,
+      "expenses": [
+        {
+          "merchant": "Adobe",
+          "category": "Software",
+          "frequency": "monthly",
+          "priceCents": 999,
+          "confidence": "high",
+          "reasons": [
+            "3 charges of $9.99, ~30 days apart"
+          ],
+          "flags": [],
+          "transactionIds": [
+            "BANK-1",
+            "BANK-2",
+            "BANK-3",
+            "BANK-4",
+            "BANK-5",
+            "BANK-6"
+          ],
+          "decision": "undecided",
+          "actionStatus": "not_started",
+          "id": "exp-adobe-999"
+        }
+      ],
+      "expectedRecurringAnnualCents": 35976,
+      "totals": {
+        "recurringAnnualCents": 11988,
+        "potentialAnnualCents": 0,
+        "reportedAnnualCents": 0,
+        "plannedGoalPct": 0,
+        "reportedGoalPct": 0
+      }
+    },
+    "smallPriceIncrease": [
+      {
+        "merchant": "Netflix",
+        "category": "Entertainment",
+        "frequency": "monthly",
+        "priceCents": 1649,
+        "confidence": "high",
+        "reasons": [
+          "3 charges of $16.49, ~30 days apart"
+        ],
+        "flags": [],
+        "transactionIds": [
+          "BANK-7",
+          "BANK-8",
+          "BANK-9"
+        ],
+        "decision": "undecided",
+        "actionStatus": "not_started",
+        "id": "exp-netflix-1649"
+      }
+    ],
+    "decisionChange": {
+      "before": {
+        "recurringAnnualCents": 90000,
+        "potentialAnnualCents": 18000,
+        "reportedAnnualCents": 18000,
+        "plannedGoalPct": 0,
+        "reportedGoalPct": 0
+      },
+      "after": {
+        "recurringAnnualCents": 90000,
+        "potentialAnnualCents": 90000,
+        "reportedAnnualCents": 18000,
+        "plannedGoalPct": 0,
+        "reportedGoalPct": 0
+      },
+      "expense": {
+        "merchant": "Example Internet Provider",
+        "category": "Software",
+        "frequency": "monthly",
+        "priceCents": 7500,
+        "confidence": "high",
+        "reasons": [
+          "3 charges of $9.99, ~30 days apart"
+        ],
+        "flags": [],
+        "transactionIds": [
+          "BANK-1",
+          "BANK-2",
+          "BANK-3",
+          "BANK-4",
+          "BANK-5",
+          "BANK-6"
+        ],
+        "decision": "cut",
+        "actionStatus": "completed",
+        "id": "internet",
+        "targetPriceCents": 6000,
+        "reportedNewPriceCents": 6000,
+        "completedAt": "2026-11-14T15:04:56.065Z"
+      },
+      "actionScreenReportedCents": 90000
+    },
+    "reverseDecisionChange": {
+      "expense": {
+        "merchant": "Example Internet Provider",
+        "category": "Software",
+        "frequency": "monthly",
+        "priceCents": 7500,
+        "confidence": "high",
+        "reasons": [
+          "3 charges of $9.99, ~30 days apart"
+        ],
+        "flags": [],
+        "transactionIds": [
+          "BANK-1",
+          "BANK-2",
+          "BANK-3",
+          "BANK-4",
+          "BANK-5",
+          "BANK-6"
+        ],
+        "decision": "negotiate",
+        "actionStatus": "completed",
+        "id": "internet",
+        "targetPriceCents": 6000,
+        "reportedNewPriceCents": 0,
+        "completedAt": "2026-11-14T15:04:56.065Z"
+      },
+      "totals": {
+        "recurringAnnualCents": 90000,
+        "potentialAnnualCents": 18000,
+        "reportedAnnualCents": 90000,
+        "plannedGoalPct": 0,
+        "reportedGoalPct": 0
+      }
+    },
+    "csvExtraColumn": {
+      "input": "Date,Description,Amount\n2026-08-03,NETFLIX,-15.49,UNEXPECTED\n2026-09-03,NETFLIX,-15.49\n2026-10-03,NETFLIX,-15.49",
+      "parsed": [
+        {
+          "Date": "2026-08-03",
+          "Description": "NETFLIX",
+          "Amount": "-15.49"
+        },
+        {
+          "Date": "2026-09-03",
+          "Description": "NETFLIX",
+          "Amount": "-15.49"
+        },
+        {
+          "Date": "2026-10-03",
+          "Description": "NETFLIX",
+          "Amount": "-15.49"
+        }
+      ],
+      "errors": []
+    },
+    "csvUnclosedQuote": {
+      "expectedPhysicalDataLines": 3,
+      "actualRows": 1,
+      "rows": [
+        {
+          "Date": "2026-08-03",
+          "Description": "broken,-15.49\n2026-09-03,NETFLIX,-15.49\n2026-10-03,NETFLIX,-15.49",
+          "Amount": ""
+        }
+      ],
+      "errors": [
+        {
+          "line": 2,
+          "index": 0,
+          "reason": "Missing amount"
+        }
+      ]
+    },
+    "zeroPaddedDebitCredit": {
+      "mapping": {
+        "date": "Date",
+        "description": "Description",
+        "amount": "Credit",
+        "signConvention": "negative_is_debit",
+        "debitColumn": "Debit"
+      },
+      "result": {
+        "rows": [
+          {
+            "id": "row-3",
+            "date": "2026-09-03",
+            "merchantRaw": "NETFLIX",
+            "merchantNormalized": "Netflix",
+            "amountCents": 1549,
+            "isRefund": false,
+            "currency": "USD"
+          }
+        ],
+        "errors": [
+          {
+            "line": 2,
+            "index": 0,
+            "reason": "Zero amount"
+          }
+        ]
+      }
+    },
+    "outputValidation": {
+      "subject": null,
+      "body": null,
+      "callScript": "Use https://unverified.example/cancel",
+      "steps": [],
+      "limitations": [],
+      "source": "ai"
+    },
+    "fallbackNegotiation": {
+      "lines": 1,
+      "text": "Hi, I’m reviewing my monthly bill for Example Internet Provider. I currently pay $75.00. I’d like to bring this down to $60.00. Are there lower-cost plans or loyalty offers available? Please confirm all fees and the new price before making changes."
+    },
+    "serviceNormalization": [
+      {
+        "raw": "YOUTUBE TV",
+        "normalized": "YouTube Premium"
+      },
+      {
+        "raw": "YOUTUBE MUSIC",
+        "normalized": "YouTube Premium"
+      },
+      {
+        "raw": "YOUTUBE PREMIUM",
+        "normalized": "YouTube Premium"
+      },
+      {
+        "raw": "XFINITY MOBILE",
+        "normalized": "Xfinity"
+      },
+      {
+        "raw": "XFINITY INTERNET",
+        "normalized": "Xfinity"
+      }
+    ],
+    "longImportedMerchant": {
+      "length": 140,
+      "merchant": "Custom Internet Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long",
+      "apiTruncatedMerchant": "Custom Internet Long Long Long Long Long Long Long Long Long Long Long Long Long"
+    },
+    "savingsContrast": {
+      "foreground": "#16A34A",
+      "background": "#DCFCE7",
+      "ratio": 3.000874450387257,
+      "AA_large_text": 3,
+      "AA_small_text": 4.5
+    },
+    "piiMerchant": {
+      "syntheticInput": "John Smith john.smith@example.com account 12345678",
+      "modelUserMessage": "merchant: John Smith john.smith@example.com account 12345678\naction: negotiate\nbilling frequency: monthly\ncurrent price: $75.00 per billing period\ntarget price: $60.00 per billing period\ntone: polite"
+    }
+  },
+  "uiObservations": {
+    "sampleCsv": {
+      "sampleBadgeCount": 0,
+      "isDemo": false
+    },
+    "staleImport": {
+      "analyzeText": "Analyze expenses (1)",
+      "errorVisible": true,
+      "analyzedPreviousData": true
+    },
+    "validRows": {
+      "fixButtons": 0,
+      "skipButtons": 0
+    },
+    "invalidTarget": {
+      "visibleValue": "oops",
+      "storedTargetCents": 1000,
+      "potentialStillShown": true
+    },
+    "statusRequests": {
+      "initialPosts": 1,
+      "afterMarkingCompletedAndEditingPrice": 3
+    },
+    "clientTimeout": {
+      "elapsedMs": 8500,
+      "copyEnabled": false,
+      "templateVisible": false,
+      "loadingVisible": true
+    },
+    "manualCRUD": {
+      "count": 9,
+      "firstPriceCents": 1234
+    },
+    "demoOverwrites": {
+      "previousBillStillStored": false
+    }
+  },
+  "limitations": [
+    "Synthetic data only",
+    "AI fetch mocked in PII reproduction",
+    "Real iOS Safari and Android Chrome not tested",
+    "Live deployed revision not compared to local HEAD",
+    "An intermediate externally modified source state failed typecheck/build; final source rerun passed"
+  ],
+  "sourceReference": {
+    "papaParse": "https://github.com/mholt/papaparse",
+    "context7LibraryId": "/mholt/papaparse",
+    "topic": "results.errors with MissingQuotes, InvalidQuotes, TooManyFields, TooFewFields"
+  }
+}

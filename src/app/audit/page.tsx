@@ -1,18 +1,34 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { useAuditStore } from "@/lib/store";
-import type { Expense } from "@/lib/types";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { ManualTab } from "@/components/audit/manual-tab";
-import { ImportTab } from "@/components/audit/import-tab";
+import {
+  ImportTab,
+  type ImportTabState,
+} from "@/components/audit/import-tab";
+import { ReplaceAuditDialog } from "@/components/audit/replace-audit-dialog";
+import { TryDemoConfirmDialog } from "@/components/demo/try-demo-confirm-dialog";
+import { useTryDemo } from "@/components/demo/use-try-demo";
 import { useHasHydrated } from "@/components/use-hydrated";
 import { cn } from "@/lib/utils";
 
 type AuditTabId = "manual" | "paste" | "csv";
+
+const INITIAL_IMPORT_STATE: ImportTabState = {
+  expenses: [],
+  isSample: false,
+  isLoading: false,
+  error: null,
+  isReady: false,
+  blockedReason: null,
+  pendingConfirmationCount: 0,
+  rejectedGroupCount: 0,
+};
 
 const TABS: { id: AuditTabId; label: string }[] = [
   { id: "manual", label: "Add manually" },
@@ -22,23 +38,33 @@ const TABS: { id: AuditTabId; label: string }[] = [
 
 export default function AuditPage() {
   const router = useRouter();
+  const analyzeHelpId = useId();
   const hydrated = useHasHydrated();
   const session = useAuditStore((s) => s.session);
   const isDemo = useAuditStore((s) => s.isDemo);
   const startSession = useAuditStore((s) => s.startSession);
-  const loadDemo = useAuditStore((s) => s.loadDemo);
+  const {
+    requestTryDemo,
+    cancelTryDemo,
+    dialogProps: tryDemoDialogProps,
+  } = useTryDemo({ redirectTo: "/results" });
 
   const [activeTab, setActiveTab] = useState<AuditTabId>("manual");
-  const [pasteExpenses, setPasteExpenses] = useState<Expense[]>([]);
-  const [csvExpenses, setCsvExpenses] = useState<Expense[]>([]);
+  const [pasteState, setPasteState] =
+    useState<ImportTabState>(INITIAL_IMPORT_STATE);
+  const [csvState, setCsvState] =
+    useState<ImportTabState>(INITIAL_IMPORT_STATE);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
+  const [replaceDialogOpen, setReplaceDialogOpen] = useState(false);
   const [resetKey, setResetKey] = useState(0);
 
   useEffect(() => {
     const resetLocalAuditState = () => {
-      setPasteExpenses([]);
-      setCsvExpenses([]);
+      setPasteState(INITIAL_IMPORT_STATE);
+      setCsvState(INITIAL_IMPORT_STATE);
       setAnalyzeError(null);
+      setReplaceDialogOpen(false);
+      cancelTryDemo();
       setActiveTab("manual");
       setResetKey((k) => k + 1);
     };
@@ -58,21 +84,37 @@ export default function AuditPage() {
       window.removeEventListener("familycut:delete-all-data", handleResetEvent);
       unsub();
     };
-  }, []);
+  }, [cancelTryDemo]);
   const tabRefs = useRef<Record<AuditTabId, HTMLButtonElement | null>>({
     manual: null,
     paste: null,
     csv: null,
   });
 
-  const handlePasteExpenses = useCallback((expenses: Expense[]) => {
-    setPasteExpenses(expenses);
+  const handlePasteState = useCallback((next: ImportTabState) => {
+    setPasteState(next);
     setAnalyzeError(null);
+    if (
+      !next.isReady ||
+      next.pendingConfirmationCount > 0 ||
+      next.rejectedGroupCount > 0 ||
+      next.expenses.length === 0
+    ) {
+      setReplaceDialogOpen(false);
+    }
   }, []);
 
-  const handleCsvExpenses = useCallback((expenses: Expense[]) => {
-    setCsvExpenses(expenses);
+  const handleCsvState = useCallback((next: ImportTabState) => {
+    setCsvState(next);
     setAnalyzeError(null);
+    if (
+      !next.isReady ||
+      next.pendingConfirmationCount > 0 ||
+      next.rejectedGroupCount > 0 ||
+      next.expenses.length === 0
+    ) {
+      setReplaceDialogOpen(false);
+    }
   }, []);
 
   const handleTabKeyDown = (
@@ -91,18 +133,56 @@ export default function AuditPage() {
       const target = TABS[nextIdx];
       setActiveTab(target.id);
       setAnalyzeError(null);
+      setReplaceDialogOpen(false);
       tabRefs.current[target.id]?.focus();
     }
   };
 
   const manualCount = hydrated && session && !isDemo ? session.expenses.length : 0;
+  const currentImportState = activeTab === "paste" ? pasteState : csvState;
+
+  const hasRealNonEmptySession =
+    hydrated &&
+    session !== null &&
+    !isDemo &&
+    (session.expenses.length > 0 || session.goal !== undefined);
+
+  const hasGoal = Boolean(session?.goal);
+  const hasReportedSavings = Boolean(
+    session?.expenses.some(
+      (exp) =>
+        exp.reportedNewPriceCents !== undefined ||
+        exp.completedAt !== undefined ||
+        exp.actionStatus === "completed",
+    ),
+  );
+
+  const isImportBlocked =
+    activeTab !== "manual" && Boolean(currentImportState.blockedReason);
+
+  const canAnalyze =
+    activeTab === "manual"
+      ? manualCount > 0
+      : currentImportState.isReady &&
+        !currentImportState.isLoading &&
+        !currentImportState.error &&
+        !currentImportState.blockedReason &&
+        currentImportState.pendingConfirmationCount === 0 &&
+        currentImportState.rejectedGroupCount === 0 &&
+        currentImportState.expenses.length > 0;
 
   const readyCount =
     activeTab === "manual"
       ? manualCount
-      : activeTab === "paste"
-        ? pasteExpenses.length
-        : csvExpenses.length;
+      : canAnalyze
+        ? currentImportState.expenses.length
+        : 0;
+
+  const isReplaceDialogOpen =
+    replaceDialogOpen &&
+    activeTab !== "manual" &&
+    canAnalyze &&
+    hasRealNonEmptySession;
 
   const handleAnalyze = () => {
     setAnalyzeError(null);
@@ -117,22 +197,58 @@ export default function AuditPage() {
       return;
     }
 
-    const expenses = activeTab === "paste" ? pasteExpenses : csvExpenses;
-    if (expenses.length === 0) {
+    const current = activeTab === "paste" ? pasteState : csvState;
+    if (
+      !current.isReady ||
+      current.isLoading ||
+      current.error ||
+      current.blockedReason ||
+      current.pendingConfirmationCount > 0 ||
+      current.rejectedGroupCount > 0 ||
+      current.expenses.length === 0
+    ) {
       setAnalyzeError(
-        activeTab === "paste"
-          ? "Preview pasted transactions with at least one recurring expense first."
-          : "Upload and preview a CSV with at least one recurring expense first.",
+        current.blockedReason ??
+          (activeTab === "paste"
+            ? "Preview pasted transactions with at least one recurring expense first."
+            : "Upload and preview a CSV with at least one recurring expense first."),
       );
       return;
     }
 
-    startSession(expenses, { isDemo: false });
+    if (hasRealNonEmptySession) {
+      setReplaceDialogOpen(true);
+      return;
+    }
+
+    startSession(current.expenses, { isDemo: current.isSample });
     router.push("/results");
   };
 
-  const handleTryDemo = () => {
-    loadDemo();
+  const handleConfirmReplace = () => {
+    if (activeTab === "manual") {
+      setReplaceDialogOpen(false);
+      return;
+    }
+    const current = activeTab === "paste" ? pasteState : csvState;
+    if (
+      !current.isReady ||
+      current.isLoading ||
+      current.error ||
+      current.blockedReason ||
+      current.pendingConfirmationCount > 0 ||
+      current.rejectedGroupCount > 0 ||
+      current.expenses.length === 0
+    ) {
+      setReplaceDialogOpen(false);
+      setAnalyzeError(
+        current.blockedReason ??
+          "Resolve preview or grouping issues before analyzing.",
+      );
+      return;
+    }
+    setReplaceDialogOpen(false);
+    startSession(current.expenses, { isDemo: current.isSample });
     router.push("/results");
   };
 
@@ -146,8 +262,9 @@ export default function AuditPage() {
             Add your recurring expenses
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">
-            Use any method. Nothing is uploaded — it&apos;s processed in your
-            browser.
+            Use any method. Your CSV and pasted rows are parsed locally in your
+            browser; raw transactions are not uploaded. Only one bill&apos;s
+            summary fields are sent when generating an AI script.
           </p>
         </div>
 
@@ -173,6 +290,7 @@ export default function AuditPage() {
                 onClick={() => {
                   setActiveTab(tab.id);
                   setAnalyzeError(null);
+                  setReplaceDialogOpen(false);
                 }}
                 onKeyDown={(e) => handleTabKeyDown(e, idx)}
                 className={cn(
@@ -210,7 +328,7 @@ export default function AuditPage() {
             <ImportTab
               key={`paste-${resetKey}`}
               mode="paste"
-              onExpensesChange={handlePasteExpenses}
+              onStateChange={handlePasteState}
             />
           </div>
           <div
@@ -221,7 +339,7 @@ export default function AuditPage() {
             <ImportTab
               key={`csv-${resetKey}`}
               mode="csv"
-              onExpensesChange={handleCsvExpenses}
+              onStateChange={handleCsvState}
             />
           </div>
         </div>
@@ -241,7 +359,7 @@ export default function AuditPage() {
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-6">
           <button
             type="button"
-            onClick={handleTryDemo}
+            onClick={requestTryDemo}
             className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold text-primary underline-offset-4 hover:underline sm:px-3 sm:text-sm"
           >
             Try demo data
@@ -249,16 +367,36 @@ export default function AuditPage() {
 
           <button
             type="button"
+            disabled={!canAnalyze}
+            aria-describedby={isImportBlocked ? analyzeHelpId : undefined}
             onClick={handleAnalyze}
-            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-95 sm:gap-2 sm:px-5 sm:text-sm"
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-5 sm:text-sm"
           >
             <span>
               Analyze expenses{readyCount > 0 ? ` (${readyCount})` : ""}
             </span>
             <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
           </button>
+          {isImportBlocked ? (
+            <span id={analyzeHelpId} className="sr-only">
+              {currentImportState.blockedReason}
+            </span>
+          ) : null}
         </div>
       </div>
+
+      <ReplaceAuditDialog
+        open={isReplaceDialogOpen}
+        existingExpenseCount={session?.expenses.length ?? 0}
+        hasGoal={hasGoal}
+        hasReportedSavings={hasReportedSavings}
+        nextExpenseCount={currentImportState.expenses.length}
+        nextIsSample={currentImportState.isSample}
+        onCancel={() => setReplaceDialogOpen(false)}
+        onConfirmReplace={handleConfirmReplace}
+      />
+
+      <TryDemoConfirmDialog {...tryDemoDialogProps} />
 
       <SiteFooter />
     </div>

@@ -48,3 +48,6 @@ next-env.d.ts
 # claude
 .claude/
 /.next-e2e/
+
+# local video renders
+/brag-output/

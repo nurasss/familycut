@@ -2,6 +2,11 @@ import {
   analyzeTransactions,
   pickReviewCandidates,
 } from "@/lib/engine/detect";
+import type {
+  ExpenseSource,
+  GroupAssignment,
+  GroupReport,
+} from "@/lib/engine/grouping";
 import {
   GENERATED_ID_PREFIX,
   MAX_FILE_BYTES,
@@ -35,6 +40,8 @@ export type RowPreviewItem = {
   status: RowPreviewStatus;
   reason?: string;
   transaction?: Transaction;
+  expenseId?: string;
+  groupId?: string;
 };
 
 export type ParseRowsResult =
@@ -56,6 +63,8 @@ export type EvaluateRowsResult =
       ok: true;
       previews: RowPreviewItem[];
       expenses: Expense[];
+      sources: ExpenseSource[];
+      groupReports: GroupReport[];
       validCount: number;
       attentionCount: number;
       excludedCount: number;
@@ -120,6 +129,7 @@ export function evaluateMappedRows(
   mapping: ColumnMapping,
   overrides: Record<number, RawRow>,
   skippedIndices: Set<number>,
+  groups?: readonly GroupAssignment[],
 ): EvaluateRowsResult {
   try {
     const activeIndices: number[] = [];
@@ -141,10 +151,9 @@ export function evaluateMappedRows(
       }
     }
 
-    const { expenses } = analyzeTransactions(parseResult.rows);
-
     const seenKeys = new Set<string>();
     let txCursor = 0;
+    const transactionsWithSource: Transaction[] = [];
     const activePreviewByIdx = new Map<number, RowPreviewItem>();
 
     activeIndices.forEach((rawIdx, effIdx) => {
@@ -172,6 +181,9 @@ export function evaluateMappedRows(
         });
         return;
       }
+
+      const txWithSource: Transaction = { ...tx, sourceIndex: rawIdx };
+      transactionsWithSource.push(txWithSource);
 
       let status: RowPreviewStatus = "valid";
       let reason: string | undefined;
@@ -203,9 +215,28 @@ export function evaluateMappedRows(
         raw,
         status,
         reason,
-        transaction: tx,
+        transaction: txWithSource,
       });
     });
+
+    const { expenses, sources, groups: groupReports } = analyzeTransactions(
+      transactionsWithSource,
+      groups !== undefined ? { groups } : undefined,
+    );
+
+    const expenseIdByRawIndex = new Map<number, string>();
+    for (const src of sources) {
+      for (const idx of src.sourceIndices) {
+        expenseIdByRawIndex.set(idx, src.expenseId);
+      }
+    }
+
+    const groupIdByRawIndex = new Map<number, string>();
+    for (const report of groupReports) {
+      for (const idx of report.activeRawIndices) {
+        groupIdByRawIndex.set(idx, report.groupId);
+      }
+    }
 
     const previews: RowPreviewItem[] = rawRows.map((raw, rawIdx) => {
       if (skippedIndices.has(rawIdx)) {
@@ -217,15 +248,20 @@ export function evaluateMappedRows(
           reason: "Skipped — excluded",
         };
       }
-      return (
-        activePreviewByIdx.get(rawIdx) ?? {
-          rawIndex: rawIdx,
-          lineNumber: rowLine(rawRows[rawIdx], rawIdx),
-          raw,
-          status: "error",
-          reason: "Could not parse row",
-        }
-      );
+      const base = activePreviewByIdx.get(rawIdx) ?? {
+        rawIndex: rawIdx,
+        lineNumber: rowLine(rawRows[rawIdx], rawIdx),
+        raw,
+        status: "error" as const,
+        reason: "Could not parse row",
+      };
+      const expenseId = expenseIdByRawIndex.get(rawIdx);
+      const groupId = groupIdByRawIndex.get(rawIdx);
+      return {
+        ...base,
+        ...(expenseId !== undefined ? { expenseId } : {}),
+        ...(groupId !== undefined ? { groupId } : {}),
+      };
     });
 
     let validCount = 0;
@@ -242,6 +278,8 @@ export function evaluateMappedRows(
       ok: true,
       previews,
       expenses,
+      sources,
+      groupReports,
       validCount,
       attentionCount,
       excludedCount,

@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { useAuditStore } from "@/lib/store";
 import { useHasHydrated } from "@/components/use-hydrated";
 import { SampleDataBadge } from "@/components/ui-badges";
+import { useTryDemo } from "@/components/demo/use-try-demo";
+import { TryDemoConfirmDialog } from "@/components/demo/try-demo-confirm-dialog";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
@@ -23,18 +24,13 @@ export function SiteHeader({
   variant = "app",
   currentStep,
 }: SiteHeaderProps) {
-  const router = useRouter();
   const hydrated = useHasHydrated();
-  const loadDemo = useAuditStore((s) => s.loadDemo);
   const isDemo = useAuditStore((s) => s.isDemo);
-
-  const handleTryDemo = () => {
-    loadDemo();
-    router.push("/results");
-  };
+  const { requestTryDemo, dialogProps } = useTryDemo({ redirectTo: "/results" });
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur-xs">
+    <>
+      <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur-xs">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <Link
           href="/"
@@ -61,7 +57,7 @@ export function SiteHeader({
             </a>
             <button
               type="button"
-              onClick={handleTryDemo}
+              onClick={requestTryDemo}
               className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
             >
               Try demo
@@ -74,7 +70,7 @@ export function SiteHeader({
             )}
             <button
               type="button"
-              onClick={handleTryDemo}
+              onClick={requestTryDemo}
               className="no-print inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted sm:px-3.5 sm:text-sm"
             >
               Try demo
@@ -147,6 +143,8 @@ export function SiteHeader({
           </nav>
         </div>
       )}
-    </header>
+      </header>
+      <TryDemoConfirmDialog {...dialogProps} />
+    </>
   );
 }

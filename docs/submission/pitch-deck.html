@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FamilyCut — Business Cup 2.0 Pitch Deck</title>
+  <style>
+    @page {
+      size: 13.3333in 7.5in;
+      margin: 0;
+    }
+
+    :root {
+      --bg: #F7F6F2;
+      --surface: #FFFFFF;
+      --surface-muted: #F2EFE9;
+      --border: #E7E5DF;
+      --ink: #1C1917;
+      --muted: #57534E;
+      --primary: #14532D;
+      --primary-soft: #ECFDF5;
+      --savings: #15803D;
+      --savings-text: #166534;
+      --savings-bg: #DCFCE7;
+      --savings-border: #BBF7D0;
+      --cut: #B91C1C;
+      --cut-bg: #FEE2E2;
+      --negotiate: #B45309;
+      --negotiate-bg: #FEF3C7;
+      --keep: #44403C;
+      --keep-bg: #F5F5F4;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 1280px;
+      background: #E5E3DC;
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .slide {
+      width: 1280px;
+      height: 720px;
+      background: var(--bg);
+      padding: 40px 52px 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      page-break-after: always;
+      break-after: page;
+    }
+
+    .slide:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
+
+    .slide-dark {
+      background: #14532D;
+      color: #FFFFFF;
+    }
+
+    /* Header & Footer bars */
+    .slide-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--primary);
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 999px;
+    }
+
+    .slide-dark .eyebrow {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.24);
+      color: #DCFCE7;
+    }
+
+    .brand-mini {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .slide-dark .brand-mini {
+      color: #FFFFFF;
+    }
+
+    .slide-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .slide-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 16px;
+    }
+
+    .slide-dark .slide-footer {
+      border-top-color: rgba(255, 255, 255, 0.18);
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    .slide-num {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .slide-dark .slide-num {
+      color: #FFFFFF;
+    }
+
+    /* Typography */
+    h1 {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+      font-size: 46px;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+
+    h2 {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+      font-size: 30px;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .lead {
+      font-size: 15px;
+      line-height: 1.48;
+      color: var(--muted);
+      max-width: 820px;
+    }
+
+    .slide-dark .lead {
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    /* Cards & Grids */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+
+    .card-muted {
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+
+    .card-savings {
+      background: var(--savings-bg);
+      border: 1px solid var(--savings-border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .grid-12 {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 20px;
+    }
+
+    .col-5 { grid-column: span 5; }
+    .col-6 { grid-column: span 6; }
+    .col-7 { grid-column: span 7; }
+    .col-8 { grid-column: span 8; }
+    .col-4 { grid-column: span 4; }
+
+    /* Pills & Chips */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+
+    .chip-cut { background: var(--cut-bg); color: var(--cut); }
+    .chip-negotiate { background: var(--negotiate-bg); color: var(--negotiate); }
+    .chip-keep { background: var(--keep-bg); color: var(--keep); border: 1px solid var(--border); }
+    .chip-savings { background: var(--savings-bg); color: var(--savings-text); border: 1px solid var(--savings-border); }
+    .chip-primary { background: var(--primary); color: #FFFFFF; }
+    .chip-outline { background: #FFFFFF; color: var(--muted); border: 1px solid var(--border); }
+    .chip-hypothesis { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .card-text {
+      font-size: 13px;
+      line-height: 1.48;
+      color: var(--muted);
+    }
+
+    .big-num {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .bullet-list li {
+      position: relative;
+      padding-left: 16px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--ink);
+    }
+
+    .bullet-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 7px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .bullet-list.muted li {
+      color: var(--muted);
+    }
+
+    .note-banner {
+      display: block;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: 8px;
+      padding: 11px 16px;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .note-banner strong {
+      color: var(--ink);
+    }
+
+    .note-banner.warn {
+      border-left-color: var(--negotiate);
+      background: #FFFBEB;
+      color: #78350F;
+    }
+
+    .note-banner.warn strong {
+      color: #78350F;
+    }
+
+    table.clean {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+
+    table.clean th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    table.clean td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    table.clean tr:last-child td {
+      border-bottom: none;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: var(--surface-muted);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--savings);
+      border-radius: 999px;
+    }
+
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: var(--primary);
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .flow-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .code-pill {
+      font-family: "SF Mono", Menlo, Monaco, monospace;
+      font-size: 11.5px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 6px;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== SLIDE 1: TITLE & PROMISE ==================== -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand-mini">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2L4 5.5V11.5C4 16.8 7.4 21.6 12 23C16.6 21.6 20 16.8 20 11.5V5.5L12 2Z" fill="#14532D"/>
+          <path d="M9 12.2L11.2 14.4L15.5 9.8" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>FamilyCut</span>
+      </div>
+      <span class="eyebrow">Business Cup 2.0 · Money Track · MVP Pitch</span>
+    </div>
+
+    <div class="slide-body">
+      <div class="grid-12" style="align-items: center;">
+        <div class="col-6" style="display: flex; flex-direction: column; gap: 18px;">
+          <div style="display: inline-flex; align-items: center; gap: 8px; width: fit-content; background: #FFFFFF; border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: var(--muted);">
+            <span>US Households · English (US) / USD · Web-only</span>
+          </div>
+
+          <h1>Находи счета, которые можно отключить. Сохраняй деньги для семьи.</h1>
+
+          <p class="lead" style="font-size: 16px;">
+            Веб-утилита, которая за пару минут находит регулярные траты, показывает честный годовой эффект в долларах и готовит письмо на отмену или скрипт переговоров. Без подключения банка и регистрации.
+          </p>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px;">
+            <span class="chip chip-primary" style="padding: 7px 14px; font-size: 12px;">CSV / Paste / Manual в браузере</span>
+            <span class="chip chip-outline" style="padding: 7px 14px; font-size: 12px;">Keep / Cut / Negotiate</span>
+            <span class="chip chip-savings" style="padding: 7px 14px; font-size: 12px;">Готовый Email / Script → Copy</span>
+          </div>
+        </div>
+
+        <div class="col-6">
+          <div class="card" style="padding: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 14px;">
+              <div>
+                <div style="font-size: 15px; font-weight: 800;">Household Bill Audit</div>
+                <div style="font-size: 11.5px; color: var(--muted);">The Miller family (синтетический пример)</div>
+              </div>
+              <span class="chip chip-outline">Sample data</span>
+            </div>
+
+            <div class="grid-3" style="gap: 10px; margin-bottom: 14px;">
+              <div class="card-muted" style="padding: 12px;">
+                <div style="font-size: 10.5px; font-weight: 700; color: var(--muted);">Recurring / yr</div>
+                <div class="tabular" style="font-size: 20px; font-weight: 800; margin-top: 4px;">$1,769.52</div>
+              </div>
+              <div class="card-savings" style="padding: 12px;">
+                <div style="font-size: 10.5px; font-weight: 700; color: var(--primary);">Potential / yr</div>
+                <div class="tabular" style="font-size: 20px; font-weight: 800; color: var(--savings-text); margin-top: 4px;">$725.76</div>
+              </div>
+              <div class="card-muted" style="padding: 12px;">
+                <div style="font-size: 10.5px; font-weight: 700; color: var(--muted);">Self-reported</div>
+                <div class="tabular" style="font-size: 20px; font-weight: 800; margin-top: 4px;">$0.00</div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px;">
+                <div>
+                  <div style="font-size: 13px; font-weight: 700;">Streaming A</div>
+                  <div class="tabular" style="font-size: 11.5px; color: var(--muted);">$15.49/mo · $185.88/yr</div>
+                </div>
+                <span class="chip chip-cut">Cut</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px;">
+                <div>
+                  <div style="font-size: 13px; font-weight: 700;">Fitness membership</div>
+                  <div class="tabular" style="font-size: 11.5px; color: var(--muted);">$29.99/mo · $359.88/yr</div>
+                </div>
+                <span class="chip chip-cut">Cut</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px;">
+                <div>
+                  <div style="font-size: 13px; font-weight: 700;">Internet Provider</div>
+                  <div class="tabular" style="font-size: 11.5px; color: var(--muted);">$75.00 → $60.00/mo · $180.00/yr</div>
+                </div>
+                <span class="chip chip-negotiate">Negotiate</span>
+              </div>
+            </div>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 12px;">
+              <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px;">
+                <span>Target: Family trip ($1,500)</span>
+                <span class="tabular" style="color: var(--savings-text);">48%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" style="width: 48%;"></div>
+              </div>
+              <div style="font-size: 11.5px; color: var(--muted); margin-top: 6px;">
+                Your planned cuts could cover <strong style="color: var(--ink);">48%</strong> of your Family trip
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Продукт работает на English (US) / USD · Без Plaid и банковских паролей</span>
+      <span class="slide-num">01 / 10</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 2: PROBLEM ==================== -->
+  <section class="slide">
+    <div class="slide-top">
+      <span class="eyebrow">01 · Проблема пользователя</span>
+      <div class="brand-mini">FamilyCut</div>
+    </div>
+
+    <div class="slide-body" style="gap: 18px;">
+      <div>
+        <h2>Семьи теряют время и деньги между выпиской и реальным действием</h2>
+        <p class="lead">
+          Целевой профиль (ТЗ §3.1): работающие родители 30-45 лет в США с двумя доходами и регулярными списаниями на стриминги, фитнес, интернет и облачные сервисы.
+        </p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span class="chip chip-cut">Барьер доверия</span>
+            <span style="font-size: 12px; font-weight: 700; color: var(--muted);">01</span>
+          </div>
+          <div class="card-title" style="font-size: 16px;">Нежелание отдавать доступ к банку</div>
+          <p class="card-text">
+            Наша гипотеза: ради проверки 5–10 подписок семье удобнее локальный аудит без подключения банка и передачи всей выписки стороннему серверу.
+          </p>
+        </div>
+
+        <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span class="chip chip-negotiate">Разрыв до действия</span>
+            <span style="font-size: 12px; font-weight: 700; color: var(--muted);">02</span>
+          </div>
+          <div class="card-title" style="font-size: 16px;">Графики не отменяют счета</div>
+          <p class="card-text">
+            Даже увидев строку <span class="code-pill">COMCAST 800-266... -$75.00</span>, человек откладывает звонок или письмо: нужно самому пересчитать годовой эффект, сформулировать просьбу о скидке и не забыть условия контракта.
+          </p>
+        </div>
+
+        <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span class="chip chip-keep">Шум и ошибки</span>
+            <span style="font-size: 12px; font-weight: 700; color: var(--muted);">03</span>
+          </div>
+          <div class="card-title" style="font-size: 16px;">Сырые выписки обманывают</div>
+          <p class="card-text">
+            Возвраты, дубли, обычные походы в супермаркет по пятницам и рваные даты списаний искажают сумму. А сервисы, обещающие «вы уже сэкономили $X» без факта отмены, вызывают недоверие.
+          </p>
+        </div>
+      </div>
+
+      <div class="note-banner">
+        <strong>Честное ограничение презентации:</strong> описание проблемы опирается на продуктовую гипотезу и анализ сценариев из ТЗ FamilyCut. Мы не используем выдуманную статистику рынка или фиктивные опросы.
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Фокус: не ещё одна таблица бюджета, а путь от выписки до скопированного письма</span>
+      <span class="slide-num">02 / 10</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 3: VALUE & HYPOTHESES ==================== -->
+  <section class="slide">
+    <div class="slide-top">
+      <span class="eyebrow">02 · Ценность и проверяемые ориентиры</span>
+      <div class="brand-mini">FamilyCut</div>
+    </div>
+
+    <div class="slide-body" style="gap: 18px;">
+      <div>
+        <h2>Масштаб задачи — в годовом эквиваленте и привязке к цели семьи</h2>
+        <p class="lead">
+          Ежемесячные суммы ($15-$75) кажутся небольшими, но умноженные на 12 месяцев превращаются в осязаемую долю семейной цели.
+        </p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="card-title" style="margin: 0; font-size: 16px;">North Star и продуктовый фокус</div>
+            <span class="chip chip-primary">P0 Core</span>
+          </div>
+          <p class="card-text" style="font-size: 13.5px; color: var(--ink);">
+            <strong>North Star:</strong> пользователь завершил локальный аудит, выбрал хотя бы одно действие <span class="chip chip-cut">Cut</span> или <span class="chip chip-negotiate">Negotiate</span> и скопировал готовое письмо или скрипт переговоров.
+          </p>
+          <ul class="bullet-list">
+            <li>Первый результат без регистрации и без банковского логина.</li>
+            <li>Годовой перевод по строгим множителям: <span class="code-pill">weekly ×52</span>, <span class="code-pill">monthly ×12</span>, <span class="code-pill">quarterly ×4</span>, <span class="code-pill">yearly ×1</span>.</li>
+            <li>Никаких автоматических «30% скидки по умолчанию» — только сумма, которую ввёл сам пользователь.</li>
+          </ul>
+        </div>
+
+        <div class="card" style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="card-title" style="margin: 0; font-size: 16px;">Продуктовые гипотезы для валидации</div>
+            <span class="chip chip-hypothesis">Только гипотезы · не traction</span>
+          </div>
+          <p class="card-text">
+            На этапе хакатона у нас нет продакшн-трафика и подтверждённых рыночных метрик. После публикации MVP мы проверяем воронку событий:
+          </p>
+          <table class="clean">
+            <thead>
+              <tr>
+                <th>Метрика (ориентир из ТЗ)</th>
+                <th>Что проверяем</th>
+                <th>Статус</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>audit start → complete</strong></td>
+                <td>Понятность импорта и правил регулярности</td>
+                <td><span class="chip chip-hypothesis">Гипотеза ≥ 60%</span></td>
+              </tr>
+              <tr>
+                <td><strong>result → Copy</strong></td>
+                <td>Практическая польза письма и скрипта</td>
+                <td><span class="chip chip-hypothesis">Гипотеза ≥ 40%</span></td>
+              </tr>
+              <tr>
+                <td><strong>Time to first result</strong></td>
+                <td>Скорость прохождения до Copy на демо/своём CSV</td>
+                <td><span class="chip chip-hypothesis">Цель ≤ 3-5 мин</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="note-banner warn">
+        <strong>Нет выдуманного traction:</strong> все процентные ориентиры выше взяты из ТЗ §17.1 как целевые гипотезы для проверки на первых пользователях, а не как текущая статистика.
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Принцип обещаний: «Potential» до действия, «Self-reported» только после отметки Completed</span>
+      <span class="slide-num">03 / 10</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 4: SOLUTION & 3 METRICS ==================== -->
+  <section class="slide">
+    <div class="slide-top">
+      <span class="eyebrow">03 · Решение и честная математика</span>
+      <div class="brand-mini">FamilyCut</div>
+    </div>
+
+    <div class="slide-body" style="gap: 18px;">
+      <div>
+        <h2>Три шага к действию и три метрики, которые никогда не смешиваются</h2>
+        <p class="lead">
+          Пользователь всегда видит, где текущие регулярные траты, где его план, а где подтверждённый им самим результат.
+        </p>
+      </div>
+
+      <div class="card" style="padding: 16px 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 32px 1fr 32px 1fr; align-items: center; gap: 8px;">
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span class="step-badge">1</span>
+            <div>
+              <div class="card-title">Add expenses (<span class="code-pill">/audit</span>)</div>
+              <div class="card-text">Ручной ввод, вставка строк (Paste) или UTF-8 CSV до 5 МБ с выбором колонок Debit/Credit, правкой строк и F09 Split/Merge.</div>
+            </div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span class="step-badge">2</span>
+            <div>
+              <div class="card-title">Review (<span class="code-pill">/results</span>)</div>
+              <div class="card-text">Топ-3 Review first с причиной и confidence. Выбор <span class="chip chip-keep">Keep</span> <span class="chip chip-cut">Cut</span> <span class="chip chip-negotiate">Negotiate</span> + цель семьи.</div>
+            </div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span class="step-badge">3</span>
+            <div>
+              <div class="card-title">Act (<span class="code-pill">/action</span>)</div>
+              <div class="card-text">Email для отмены или Phone/chat script для торга, тон Polite/Firm, чек-лист, кнопка <strong>Copy</strong> и учёт статуса.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="kpi-label">Метрика 1 · База</div>
+          <div style="font-size: 16px; font-weight: 800; margin-bottom: 6px;">Recurring spend / year</div>
+          <p class="card-text">
+            Годовой эквивалент регулярных списаний, подтверждённых пользователем (<span class="code-pill">Keep / Cut / Negotiate</span>) или найденных со средней/высокой уверенностью. Никогда не называется «потерей».
+          </p>
+        </div>
+
+        <div class="card-savings">
+          <div class="kpi-label" style="color: var(--primary);">Метрика 2 · План (единственный зелёный акцент)</div>
+          <div style="font-size: 16px; font-weight: 800; color: var(--savings-text); margin-bottom: 6px;">Potential annual savings (estimate)</div>
+          <p class="card-text" style="color: var(--primary);">
+            Считается только от выбранных пользователем <strong>Cut</strong> (100% годовой суммы) и <strong>Negotiate</strong> (<span class="code-pill">(current - target) × mult</span> при введённой целевой цене).
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="kpi-label">Метрика 3 · Факт со слов</div>
+          <div style="font-size: 16px; font-weight: 800; margin-bottom: 6px;">Self-reported annual savings</div>
+          <p class="card-text">
+            Всегда с пометкой <strong>not bank-verified</strong>. Считается только для позиций в статусе <span class="code-pill">Completed</span> с новой ценой ($0 при отмене); никогда не бывает отрицательной.
+          </p>
+        </div>
+      </div>
+
+      <div class="note-banner">
+        <strong>Инженерная точность:</strong> вся денежная арифметика выполняется на клиенте в целых центах USD (<span class="code-pill">engine/money.ts</span>), чтобы избежать ошибок округления float.
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Если пользователь выбрал Negotiate без target price, скрипт доступен, а экономия = $0</span>
+      <span class="slide-num">04 / 10</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 5: SYNTHETIC DEMO (MILLER FAMILY) ==================== -->
+  <section class="slide">
+    <div class="slide-top">
+      <span class="eyebrow">04 · Демо-сценарий (Sample data · синтетика)</span>
+      <div class="brand-mini">FamilyCut</div>
+    </div>
+
+    <div class="slide-body" style="gap: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;">
+        <div>
+          <h2>"The Miller family": полный сценарий Try demo без API-ключа</h2>
+          <p class="lead">
+            Синтетическая фикстура (<span class="code-pill">src/lib/fixtures/miller.ts</span>) с обязательной меткой <strong>Sample data</strong>: 5 регулярных счетов и цель Family trip ($1,500).
+          </p>
+        </div>
+        <span class="chip chip-hypothesis" style="padding: 6px 12px;">Вымышленные данные · не реальная семья</span>
+      </div>
+
+      <div class="grid-3" style="gap: 14px;">
+        <div class="card" style="padding: 14px 18px;">
+          <div class="kpi-label">Recurring spend / year</div>
+          <div class="big-num">$1,769.52</div>
+          <div class="card-text" style="margin-top: 4px;">Все 5 регулярных месячных сервисов</div>
+        </div>
+        <div class="card-savings" style="padding: 14px 18px;">
+          <div class="kpi-label" style="color: var(--primary);">Potential annual savings (estimate)</div>
+          <div class="big-num" style="color: var(--savings-text);">$725.76</div>
+          <div class="card-text" style="color: var(--primary); margin-top: 4px;">$185.88 + $359.88 + $180.00</div>
+        </div>
+        <div class="card" style="padding: 14px 18px;">
+          <div class="kpi-label">Self-reported annual savings</div>
+          <div class="big-num">$0.00</div>
+          <div class="card-text" style="margin-top: 4px;">Пока пользователь не отметил Completed</div>
+        </div>
+      </div>
+
+      <div class="grid-12" style="align-items: stretch;">
+        <div class="col-8 card" style="padding: 14px 18px;">
+          <table class="clean">
+            <thead>
+              <tr>
+                <th>Расход (English US)</th>
+                <th>Тариф и период</th>
+                <th>Решение</th>
+                <th style="text-align: right;">Годовой расход</th>
+                <th style="text-align: right;">Potential / yr</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Streaming A</strong></td>
+                <td class="tabular">$15.49 / month</td>
+                <td><span class="chip chip-cut">Cut</span></td>
+                <td class="tabular" style="text-align: right;">$185.88</td>
+                <td class="tabular" style="text-align: right; font-weight: 800; color: var(--savings-text);">$185.88</td>
+              </tr>
+              <tr>
+                <td><strong>Fitness membership</strong></td>
+                <td class="tabular">$29.99 / month</td>
+                <td><span class="chip chip-cut">Cut</span></td>
+                <td class="tabular" style="text-align: right;">$359.88</td>
+                <td class="tabular" style="text-align: right; font-weight: 800; color: var(--savings-text);">$359.88</td>
+              </tr>
+              <tr>
+                <td><strong>Internet Provider</strong></td>
+                <td class="tabular">$75.00 → $60.00 / month</td>
+                <td><span class="chip chip-negotiate">Negotiate</span></td>
+                <td class="tabular" style="text-align: right;">$900.00</td>
+                <td class="tabular" style="text-align: right; font-weight: 800; color: var(--savings-text);">$180.00</td>
+              </tr>
+              <tr>
+                <td>Music family plan</td>
+                <td class="tabular">$16.99 / month</td>
+                <td><span class="chip chip-keep">Keep</span></td>
+                <td class="tabular" style="text-align: right;">$203.88</td>
+                <td class="tabular" style="text-align: right; color: var(--muted);">$0.00</td>
+              </tr>
+              <tr>
+                <td>Cloud storage</td>
+                <td class="tabular">$9.99 / month</td>
+                <td><span class="chip chip-keep">Keep</span></td>
+                <td class="tabular" style="text-align: right;">$119.88</td>
+                <td class="tabular" style="text-align: right; color: var(--muted);">$0.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="col-4 card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+          <div>
+            <div class="kpi-label">Family Goal</div>
+            <div style="font-size: 18px; font-weight: 800;">Family trip</div>
+            <div class="tabular" style="font-size: 28px; font-weight: 800; color: var(--savings-text); margin-top: 6px;">$1,500.00</div>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px;">
+              <span>Плановое покрытие</span>
+              <span class="tabular" style="color: var(--savings-text);">48%</span>
+            </div>
+            <div class="progress-track" style="height: 12px;">
+              <div class="progress-fill" style="width: 48%;"></div>
+            </div>
+            <p class="card-text" style="margin-top: 8px;">
+              «Your planned cuts could cover <strong>48%</strong> of your Family trip» ($725.76 / $1,500).
+            </p>
+          </div>
+
+          <div class="card-muted" style="padding: 10px 12px; font-size: 11.5px; color: var(--muted);">
+            Также встроен 28-строчный <strong>Sample CSV</strong> с шумом мерчантов, 1 refund ($15.49), 1 дублем ID, продуктами и payroll.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Проверяется в E2E-тесте T-14 и работает без AI-ключа через Template fallback</span>
+      <span class="slide-num">05 / 10</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 6: ENGINE & F09 SPLIT/MERGE ==================== -->
+  <section class="slide">
+    <div class="slide-top">
+      <span class="eyebrow">05 · Детектор регулярности и F09 Split / Merge</span>
+      <div class="brand-mini">FamilyCut</div>
+    </div>
+
+    <div class="slide-body" style="gap: 16px;">
+      <div>
+        <h2>Прозрачные эвристики + ручная группировка Split / Merge до Analyze</h2>
+        <p class="lead">
+          Движок в браузере не угадывает вслепую: каждая находка показывает причину и уровень уверенности, а спорные строки пользователь поправляет сам до анализа.
+        </p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="card-title" style="margin: 0; font-size: 16px;">Автоматическая очистка и правила</div>
+            <span class="chip chip-outline">engine/parse · normalize · detect</span>
+          </div>
+          <ul class="bullet-list">
+            <li><strong>Фильтры до подсчёта:</strong> возвраты (<span class="code-pill">refund</span>), входящие зачисления (<span class="code-pill">credit</span>) и точные повторы с банковским Transaction ID исключаются.</li>
+            <li><strong>Магазины ≠ подписки:</strong> регулярные покупки вроде <span class="code-pill">WHOLEFDS MKT</span> / <span class="code-pill">TRADER JOES</span> получают максимум <span class="code-pill">low</span> и не попадают в recurring без подтверждения.</li>
+            <li><strong>Одиночные годовые / скачки цен:</strong> единичный платёж $120 даёт <span class="code-pill">low</span>, а рост цены отмечается флагом <span class="code-pill">price_increase</span>.</li>
+            <li><strong>Непрозрачные ID:</strong> <span class="code-pill">exp-&lt;32 hex&gt;</span> без названия мерчанта или суммы в идентификаторе.</li>
+          </ul>
+        </div>
+
+        <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="card-title" style="margin: 0; font-size: 16px;">Реализовано в F09: Split / Merge в preview</div>
+            <span class="chip chip-savings">Принято и протестировано</span>
+          </div>
+          <p class="card-text">
+            В предпросмотре CSV/Paste пользователь выбирает исходные строки по <span class="code-pill">sourceIndex</span>:
+          </p>
+          <ul class="bullet-list">
+            <li><strong>Split:</strong> разводит два одинаковых списания без ID (два аккаунта по $15.49 в один день → $371.76/yr вместо одного с флагом дубля) или две разные услуги одного бренда.</li>
+            <li><strong>Merge:</strong> склеивает рваные фрагменты или разные описания (<span class="code-pill">NETFLIX.COM</span> + <span class="code-pill">NFLX DIGITAL</span>) в один расход без удвоения цены.</li>
+            <li><strong>Защита от ошибок:</strong> параллельные услуги (<span class="code-pill">overlapping_services</span>) и разные периоды (<span class="code-pill">mixed_periods</span>) отклоняются; скачок &gt;1.5x через разрыв требует явного подтверждения.</li>
+            <li><strong>Чистая граница:</strong> назначения живут только в памяти вкладки; есть <span class="code-pill">Undo / Clear</span> и диалог <span class="code-pill">Replace audit</span>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="note-banner">
+        <strong>Ограничение F09:</strong> после нажатия Analyze для изменения состава групп требуется повторный импорт; автоматические подсказки «объедини эти строки» оставлены вне P0.
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Назначение пользователя переопределяет состав корзины, но не доказывает активность услуги</span>
+      <span class="slide-num">06 / 10</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 7: PRIVACY & AI ARCHITECTURE ==================== -->
+  <section class="slide">
+    <div class="slide-top">
+      <span class="eyebrow">06 · Приватность и архитектура AI</span>
+      <div class="brand-mini">FamilyCut</div>
+    </div>
+
+    <div class="slide-body" style="gap: 16px;">
+      <div>
+        <h2>CSV остаётся в браузере. Модель пишет только текст, расчёты локальные.</h2>
+        <p class="lead">
+          Сервер имеет ровно один endpoint <span class="code-pill">POST /api/ai/action</span> и никогда не видит сырую банковскую выписку или список всех расходов.
+        </p>
+      </div>
+
+      <div class="card" style="padding: 18px 20px;">
+        <div style="display: grid; grid-template-columns: 1.35fr 36px 1fr 36px 1.2fr; align-items: stretch; gap: 8px;">
+          <div class="card-muted" style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="chip chip-primary">1 · BROWSER (локально)</span>
+            </div>
+            <div style="font-size: 13px; font-weight: 700;">Парсинг, математика и хранение</div>
+            <p class="card-text" style="font-size: 12px;">
+              CSV / Paste / Manual → отброс лишних колонок (account #, ФИО, balance) → <span class="code-pill">normalize</span> → <span class="code-pill">detect</span> + F09 → <span class="code-pill">integer cents</span> → <span class="code-pill">localStorage</span>.
+            </p>
+            <div style="font-size: 11.5px; color: var(--primary); font-weight: 700;">Кнопка «Delete my data» очищает всё.</div>
+          </div>
+
+          <div class="flow-arrow">→</div>
+
+          <div class="card" style="border-color: var(--primary); display: flex; flex-direction: column; gap: 8px;">
+            <span class="chip chip-outline" style="width: fit-content;">2 · SAFE PAYLOAD</span>
+            <div style="font-size: 13px; font-weight: 700;"><span class="code-pill">buildSafeActionRequest()</span></div>
+            <p class="card-text" style="font-size: 12px;">
+              Из <strong>одного</strong> выбранного расхода уходят только 6 полей: <span class="code-pill">merchant</span> (allowlist или <em>"Service provider"</em>), <span class="code-pill">action</span>, <span class="code-pill">frequency</span>, <span class="code-pill">currentPriceCents</span>, <span class="code-pill">targetPriceCents?</span>, <span class="code-pill">tone</span>.
+            </p>
+          </div>
+
+          <div class="flow-arrow">→</div>
+
+          <div class="card-muted" style="display: flex; flex-direction: column; gap: 8px;">
+            <span class="chip chip-negotiate" style="width: fit-content;">3 · SERVER &amp; FALLBACK</span>
+            <div style="font-size: 13px; font-weight: 700;"><span class="code-pill">POST /api/ai/action</span></div>
+            <p class="card-text" style="font-size: 12px;">
+              Повторный <span class="code-pill">sanitizeActionRequest</span> → Zod + rate limit (20/min/IP) → xAI Grok (JSON Schema, фильтр контактов и сумм, 1 retry, 8s) → при любом сбое или без ключа работает локальный <strong>Template fallback</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="gap: 16px;">
+        <div class="card" style="padding: 14px 18px;">
+          <div class="card-title">Защита от галлюцинаций модели</div>
+          <p class="card-text">
+            Валидатор <span class="code-pill">response-check.ts</span> эвристически отклоняет выдуманные URL, e-mail, телефоны и чужие суммы в долларах; допускаются только проверяемые цены запроса и 4 безопасных плейсхолдера вроде <span class="code-pill">[Account email]</span>.
+          </p>
+        </div>
+        <div class="card" style="padding: 14px 18px;">
+          <div class="card-title">Честные границы безопасности</div>
+          <p class="card-text">
+            <span class="code-pill">localStorage</span> не зашифрован (на общем компьютере нужно нажать Delete my data). Пользователь всегда сам проверяет письмо и связывается с провайдером.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>E2E-тест NFR-04 проверяет сетевой трафик демо: никаких утечек CSV или обращений к сторонним доменам</span>
+      <span class="slide-num">07 / 10</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 8: DIFFERENTIATION & VERIFICATION ==================== -->
+  <section class="slide">
+    <div class="slide-top">
+      <span class="eyebrow">07 · Отличие от аналогов и проверка кода</span>
+      <div class="brand-mini">FamilyCut</div>
+    </div>
+
+    <div class="slide-body" style="gap: 16px;">
+      <div>
+        <h2>Фокус FamilyCut: от проверки расходов к конкретному действию</h2>
+        <p class="lead">
+          Мы не конкурируем с банковскими агрегаторами за синхронизацию всех счетов — мы закрываем быстрый аудит подписок и переход к действию.
+        </p>
+      </div>
+
+      <div class="card" style="padding: 14px 18px;">
+        <table class="clean">
+          <thead>
+            <tr>
+              <th>Критерий</th>
+              <th>Задача пользователя</th>
+              <th>FamilyCut (реализация P0)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Доступ к банку и вход</strong></td>
+              <td>Проверить счета без банковского логина</td>
+              <td><span class="chip chip-savings">Без аккаунта и без банка</span> — CSV / Paste / Manual локально</td>
+            </tr>
+            <tr>
+              <td><strong>Следующий шаг</strong></td>
+              <td>Самостоятельно обратиться к провайдеру</td>
+              <td>Готовое письмо / скрипт под нужный тон + <span class="code-pill">Copy</span> и чек-лист</td>
+            </tr>
+            <tr>
+              <td><strong>Доверие к цифрам</strong></td>
+              <td>Отделить возможную экономию от результата</td>
+              <td>3 раздельных счётчика: <strong>Recurring / Potential / Self-reported</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Контроль ошибок выписки</strong></td>
+              <td>Проверить и исправить спорную регулярность</td>
+              <td>Прозрачные <span class="code-pill">reasons + confidence</span> и ручной <strong>F09 Split / Merge</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="kpi-label">Unit-тесты (Vitest)</div>
+          <div class="big-num" style="color: var(--primary);">350 / 350</div>
+          <div class="card-text" style="margin-top: 4px;">12 файлов;  бенчмарк 1 000 строк &lt; 500 мс (формулы, CSV, AI check, F09).</div>
+        </div>
+        <div class="card">
+          <div class="kpi-label">Production E2E (Playwright)</div>
+          <div class="big-num" style="color: var(--primary);">37 / 37</div>
+          <div class="card-text" style="margin-top: 4px;">Сборка <span class="code-pill">.next-e2e</span>, mobile 360/375 px, Delete my data, fallback 500, F09 и NFR-04.</div>
+        </div>
+        <div class="card">
+          <div class="kpi-label">Статический контроль</div>
+          <div class="big-num" style="color: var(--primary);">0 ошибок</div>
+          <div class="card-text" style="margin-top: 4px;"><span class="code-pill">tsc --noEmit</span>, <span class="code-pill">eslint</span> по коду и <span class="code-pill">git diff --check</span>. Локальные проверки без live LLM.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Все проверки выполнены на локальном синтетическом наборе; реальный live deploy проверяется отдельно</span>
+      <span class="slide-num">08 / 10</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 9: MONETIZATION HYPOTHESES ==================== -->
+  <section class="slide">
+    <div class="slide-top">
+      <span class="eyebrow">08 · Бизнес-модель (гипотезы)</span>
+      <div class="brand-mini">FamilyCut</div>
+    </div>
+
+    <div class="slide-body" style="gap: 18px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;">
+        <div>
+          <h2>Монетизация: только гипотезы ценности после проверки спроса</h2>
+          <p class="lead">
+            Логика freemium: базовый разовый аудит бесплатен для доверия, а платные планы закрывают сложные переговоры и регулярный семейный контроль.
+          </p>
+        </div>
+        <span class="chip chip-hypothesis" style="padding: 6px 12px;">Платежей в MVP нет</span>
+      </div>
+
+      <div class="grid-3">
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span class="chip chip-outline">Free · Реализовано в P0</span>
+            </div>
+            <div class="big-num">$0</div>
+            <div class="card-title" style="margin-top: 8px;">Первый аудит и базовые тексты</div>
+            <ul class="bullet-list muted" style="margin-top: 10px;">
+              <li>Manual / Paste / CSV локально</li>
+              <li>F09 Split / Merge и семейная цель</li>
+              <li>Базовые шаблоны Cut / Negotiate и Copy</li>
+            </ul>
+          </div>
+          <div class="card-muted" style="padding: 10px 12px; font-size: 11.5px; color: var(--muted);">
+            Задача: проверить завершение аудита и реальное использование Copy.
+          </div>
+        </div>
+
+        <div class="card" style="border-color: var(--primary); display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span class="chip chip-hypothesis">Action Pack · Гипотеза</span>
+            </div>
+            <div class="big-num">$19 <span style="font-size: 14px; font-weight: 600; color: var(--muted);">one-time</span></div>
+            <div class="card-title" style="margin-top: 8px;">Расширенный пакет действий</div>
+            <ul class="bullet-list" style="margin-top: 10px;">
+              <li>Сценарии для сложных тарифов (интернет, связь, фитнес)</li>
+              <li>Возражения провайдера и follow-up письма</li>
+              <li>Разовая покупка без новой подписки</li>
+            </ul>
+          </div>
+          <div class="card-muted" style="padding: 10px 12px; font-size: 11.5px; color: var(--muted);">
+            Что валидируем: готовность платить (WTP) за разовую выгоду без новой ежемесячной подписки.
+          </div>
+        </div>
+
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span class="chip chip-hypothesis">Family Plan · Гипотеза</span>
+            </div>
+            <div class="big-num">$79 <span style="font-size: 14px; font-weight: 600; color: var(--muted);">/ year</span></div>
+            <div class="card-title" style="margin-top: 8px;">Годовой семейный доступ (P1)</div>
+            <ul class="bullet-list" style="margin-top: 10px;">
+              <li>Две выписки партнёров (Partner A / B)</li>
+              <li>Защищённый Share с TTL и отзывом доступа</li>
+              <li>История аудитов, PDF-отчёт и напоминания</li>
+            </ul>
+          </div>
+          <div class="card-muted" style="padding: 10px 12px; font-size: 11.5px; color: var(--muted);">
+            Что валидируем: возврат семьи через 3-12 месяцев и совместную работу пары.
+          </div>
+        </div>
+      </div>
+
+      <div class="note-banner warn">
+        <strong>Статус оплаты:</strong> Stripe, paywall и биллинг в P0 сознательно не подключены. Цены $19 и $79/year — продуктовые гипотезы из ТЗ §15.3, требующие проверки на реальных пользователях.
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Логично для анти-подписочного продукта: начать с разового Action Pack ($19) без навязывания новой подписки</span>
+      <span class="slide-num">09 / 10</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 10: STATUS, GAPS & ROADMAP ==================== -->
+  <section class="slide">
+    <div class="slide-top">
+      <span class="eyebrow">09 · Текущий статус, честные границы и Roadmap</span>
+      <div class="brand-mini">FamilyCut</div>
+    </div>
+
+    <div class="slide-body" style="gap: 16px;">
+      <div>
+        <h2>Что уже работает в P0, а что честно оставлено для P1 / P2</h2>
+        <p class="lead">
+          В P0 заморожен надёжный локальный цикл до нажатия Copy. Функции совместной работы и серверного хранения выделены в следующий этап.
+        </p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card" style="border-color: var(--savings-border); background: #FFFFFF;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
+            <span class="chip chip-savings">Готово локально (P0 + F09)</span>
+          </div>
+          <ul class="bullet-list">
+            <li>Landing + <span class="code-pill">Try demo</span> («Miller family»)</li>
+            <li><span class="code-pill">/audit</span>: Manual, Paste, CSV mapping, Debit/Credit</li>
+            <li><strong>F09:</strong> Split / Merge до Analyze, подтверждение скачка &gt;1.5x, Replace audit</li>
+            <li><span class="code-pill">/results</span>: 3 метрики, Review first, Family goal</li>
+            <li><span class="code-pill">/action</span>: Email / Script, AI + Template fallback, Delete my data, базовый Print</li>
+          </ul>
+        </div>
+
+        <div class="card" style="border-color: #FDE68A; background: #FFFFFF;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
+            <span class="chip chip-hypothesis">Не реализовано (P1)</span>
+          </div>
+          <ul class="bullet-list muted">
+            <li><strong>Sharing:</strong> защищённая ссылка партнёру с consent, TTL и revoke</li>
+            <li><strong>Accounts &amp; sync:</strong> magic link, синхронизация между устройствами</li>
+            <li><strong>2 CSV (Partner A / B):</strong> поиск дублей между двумя выписками семьи</li>
+            <li><strong>Full report PDF:</strong> отдельный экспорт полного отчёта (сейчас только браузерный Print)</li>
+            <li><strong>Reminders:</strong> календарь продлений и проверенные direct links</li>
+          </ul>
+        </div>
+
+        <div class="card" style="background: #FFFFFF;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
+            <span class="chip chip-outline">P2 и внешние шаги сдачи</span>
+          </div>
+          <ul class="bullet-list muted">
+            <li><strong>P2:</strong> RU / мультивалютность, биллинг ($19 / $79), мониторинг цен</li>
+            <li><strong>Публикация (TBD):</strong> commit/push, deploy на Vercel, проверка URL из README (<span class="code-pill">familycut.vercel.app</span>, GitHub доступны; финальная версия ещё не опубликована)</li>
+            <li><strong>Сдача (TBD):</strong> данные команды/спикера и подтверждение регламента организаторов Business Cup 2.0</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card-muted" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px;">
+        <div>
+          <div style="font-size: 15px; font-weight: 800; color: var(--ink);">FamilyCut — честный privacy-first путь от выписки до действия</div>
+          <div style="font-size: 12.5px; color: var(--muted); margin-top: 2px;">350 unit-тестов · 37 E2E-тестов · локальный парсинг и расчёты в центах · готовый Template fallback</div>
+        </div>
+        <span class="chip chip-primary" style="padding: 8px 16px; font-size: 12px;">Спасибо · Готовы к Q&amp;A</span>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Дисклеймер продукта: Not financial or legal advice. Review details before acting.</span>
+      <span class="slide-num">10 / 10</span>
+    </div>
+  </section>
+
+</body>
+</html>

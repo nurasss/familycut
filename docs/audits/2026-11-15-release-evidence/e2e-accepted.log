@@ -1,0 +1,61 @@
+
+> businesscup@0.1.0 test:e2e
+> playwright test
+
+[WebServer] (node:83467) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:83545) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:83658) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:83659) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:83660) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:83658) Warning: `--localstorage-file` was provided without a valid path
+[WebServer] (node:83712) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 37 tests using 1 worker
+
+(node:83713) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 e2e/curator-frontend.spec.ts:36:1 › F04: valid CSV -> oversized CSV blocks Analyze and clears previous preview (4.8s)
+  ✓   2 e2e/curator-frontend.spec.ts:57:1 › F05 & F14: invalid target clears persisted targetPriceCents, removes savings, and links aria-describedby (3.4s)
+  ✓   3 e2e/curator-frontend.spec.ts:96:1 › F13: Load sample CSV and Paste sample rows preserve Sample data badge, regular CSV does not (4.3s)
+  ✓   4 e2e/curator-frontend.spec.ts:137:1 › F10: hanging AI request keeps Template and Copy usable immediately (1.7s)
+  ✓   5 e2e/curator-frontend.spec.ts:169:1 › F10, F12, F14 & F02: status/reported edits avoid extra AI POSTs, yearly notice shows, and keyboard navigation works (3.0s)
+  ✓   6 e2e/curator-frontend.spec.ts:257:1 › F04: Delete my data during in-flight CSV import does not restore data (2.3s)
+  ✓   7 e2e/curator-frontend.spec.ts:278:1 › T-13 mobile 360/375px: filled preview with error row and invalid target cause no horizontal overflow (4.3s)
+  ✓   8 e2e/curator-frontend.spec.ts:322:1 › F03 frontend: buildSafeActionRequest sends Service provider/Netflix, omits target on Cut, preserves local Template & status stability (5.8s)
+  ✓   9 e2e/curator-frontend.spec.ts:472:1 › W1B3/F03 network audit: imported PII CSV /action URL and reload GET must not leak merchant slug (2.3s)
+  ✓  10 e2e/curator-frontend.spec.ts:554:1 › W2F1: invalid, migrated slug, Keep, and deleted /action links show Expense not found with zero AI POSTs, while URL changes update selection (7.7s)
+  ✓  11 e2e/curator-frontend.spec.ts:702:1 › F09 partial: Edit, Exclude, and Restore on valid CSV preview rows recompute candidates and Analyze readiness (1.9s)
+  ✓  12 e2e/curator-frontend.spec.ts:749:1 › F08 UI: manual Paid/Received Debit/Credit mapping displays non-zero Credit and edits both sides safely (1.6s)
+  ✓  13 e2e/curator-frontend.spec.ts:795:1 › F09 & T-13 mobile 360/375px: open row editor on mobile has zero overflow and zero duplicate DOM ids (2.1s)
+  ✓  14 e2e/manual-entry.spec.ts:3:1 › FR-02: ten manual expenses can be added, corrected, removed and restored on reload (3.9s)
+  ✓  15 e2e/manual-grouping.spec.ts:66:1 › 1. Split separates identical no-ID Netflix accounts ($371.76/yr), surfaces op errors, skips non-debits, supports Undo/Clear and >12 rows (7.9s)
+  ✓  16 e2e/manual-grouping.spec.ts:193:1 › 2. Merge combines gapped Netflix ($185.88/yr) and preserves dropped multi-name NFLX fragment (4.2s)
+  ✓  17 e2e/manual-grouping.spec.ts:267:1 › 3. Rejected overlapping_services & mixed_periods block Analyze, while no_expense and inactive explain status clearly (4.8s)
+  ✓  18 e2e/manual-grouping.spec.ts:369:1 › 4. large_price_change needs confirmation, Cancel keeps blocked, Confirm applies ($239.88), and Edit/Exclude->Confirm->Restore clears stale approval (11.9s)
+  ✓  19 e2e/manual-grouping.spec.ts:520:1 › 5. Mapping change clears grouping (keeping row edits/excludes) with notice; new file/paste and Delete my data reset cleanly (7.8s)
+  ✓  20 e2e/manual-grouping.spec.ts:613:1 › 6. Persistence on /results preserves grouped service without leaking rawRows/sources/assignments/proposalKey to storage, URL, or AI POST (4.3s)
+  ✓  21 e2e/manual-grouping.spec.ts:699:1 › 7. Mobile 360px/375px zero horizontal overflow, unique DOM IDs, and keyboard modal/checkbox accessibility (8.2s)
+  ✓  22 e2e/manual-grouping.spec.ts:785:1 › 8. Replace audit protects non-empty real session (decisions, reported savings, goal, old /action URLs) while Manual, Demo, and Empty bypass prompt (7.9s)
+  ✓  23 e2e/release-readiness.spec.ts:79:1 › Empty and demo sessions bypass Try demo confirmation without extra prompts (1.6s)
+  ✓  24 e2e/release-readiness.spec.ts:103:1 › Landing (hero & header) Try demo confirms over real session, preserves on Cancel/Escape, replaces on Confirm (1.3s)
+  ✓  25 e2e/release-readiness.spec.ts:161:1 › /audit Try demo data confirms over real session and Cancel/Escape preserves both session and unsaved input (2.2s)
+  ✓  26 e2e/release-readiness.spec.ts:206:1 › /action empty-actions Try demo confirms over real Keep-only session, Cancel keeps session, Confirm loads demo actions (1.7s)
+  ✓  27 e2e/release-readiness.spec.ts:249:1 › /results goal-only real session confirms Try demo before overwriting goal (1.2s)
+  ✓  28 e2e/release-readiness.spec.ts:283:1 › Mobile 360px dialog layout fits without horizontal overflow (1.1s)
+  ✓  29 e2e/release-readiness.spec.ts:315:1 › Manual money input parses float-prone cents exactly and enforces $1m cap (1.1s)
+  ✓  30 e2e/security.spec.ts:3:1 › security headers are set and x-powered-by is gone (126ms)
+  ✓  31 e2e/security.spec.ts:20:1 › production build: clean console, no CSP violations, fonts load (1.7s)
+  ✓  32 e2e/smoke.spec.ts:11:1 › T-14: demo flow landing -> results -> action -> Copy, with correct numbers (1.5s)
+  ✓  33 e2e/smoke.spec.ts:31:1 › T-10: AI endpoint returns 500 -> template text is still shown (1.0s)
+  ✓  34 e2e/smoke.spec.ts:39:1 › T-11: Delete my data -> reload -> storage is empty and /results shows the empty state (2.0s)
+  ✓  35 e2e/smoke.spec.ts:53:1 › T-13: no horizontal scroll at 375 and 360 px (6.8s)
+  ✓  36 e2e/smoke.spec.ts:71:1 › Paste scenario (T-01): 3 Netflix lines -> Netflix $185.88/yr (2.2s)
+  ✓  37 e2e/smoke.spec.ts:88:1 › NFR-04: the demo path sends only the minimal payload to the server (1.4s)
+
+  37 passed (2.5m)

@@ -1,0 +1,102 @@
+{
+  "checkedAtUTC": "2026-11-14T18:35:55.279600+00:00",
+  "decision": "engine-accepted; frontend integration pending",
+  "changedExistingSinceWave4": [
+    "docs/CONTRACT.md",
+    "src/lib/engine/detect.ts",
+    "src/lib/types.ts"
+  ],
+  "newEngineFiles": [
+    "src/lib/engine/grouping.ts",
+    "src/lib/engine/grouping.test.ts"
+  ],
+  "acceptedContractUnchanged": true,
+  "checks": {
+    "unit": {
+      "passed": 328,
+      "files": 10,
+      "seconds": 3.42
+    },
+    "typecheck": {
+      "exit": 0
+    },
+    "lint": {
+      "exit": 0,
+      "warnings": 0
+    },
+    "diffCheck": {
+      "exit": 0
+    },
+    "productionE2E": {
+      "passed": 21,
+      "duration": "1.6m",
+      "includesBuild": true,
+      "realLLMRequests": false
+    },
+    "independentProbe": {
+      "passed": 3,
+      "files": 1,
+      "temporaryFileRemoved": true
+    }
+  },
+  "sourceSHA256": {
+    "README.md": "cc82c8868a902817598d4bbc104fafc33638848c85aaadcbeb7e3e02a3642eba",
+    "docs/CONTRACT.md": "3be6523173acdab19eb50fab0d0cf41a385d8a4b8872f3c5dfc831fb4a3b2856",
+    "docs/design/manual-grouping-contract.md": "f3c4e21854f485b5b1ff9eadede069c94ab166687dd0c9ea2deeb96a87986d2e",
+    "e2e/curator-frontend.spec.ts": "6045342bc62947d848bf809aee68acc8a96c5f6b0a5c5b8a7d0ac90638b0a3ff",
+    "e2e/security.spec.ts": "4135e5374aa394cffde2901e0a95c0338858aa97acae8a05bbd6a774ca3a598f",
+    "e2e/smoke.spec.ts": "f3b4c564aa2d04a42be1fedebde7b82e158603106bb28e62eaf1dae46db68d7c",
+    "src/app/action/[id]/page.tsx": "7489cf9c388cef46ac17ff9fcabb777c254d8a4235e23f0c16842352f6ff6b3e",
+    "src/app/action/page.tsx": "8562f4a185ae41e1dc915b68b4c56c94bb3d621ddeff183331806d4319812f41",
+    "src/app/api/ai/action/route.ts": "5dbac9b0c32b0a454e56133beef1c75b057a0ccbd4c37361db88c0ae496791fb",
+    "src/app/audit/page.tsx": "f4de6e842169171c74b86d7126599207ed446d2c3b8a2ab4ccbac464f845a0ee",
+    "src/app/favicon.ico": "c28fdd2a4f31e2dc64f653962286da5c82a4cdfc518b242d32812c624e9a19a4",
+    "src/app/globals.css": "c624fbbc7eb68d7d9ecadd3ef8169987299821dbfc0b270dbbf99fb46d65a5f3",
+    "src/app/layout.tsx": "a6a79e20f13bd06e78532735bc66a9991497421d98ec854b96204a386b47efaf",
+    "src/app/page.tsx": "4373b3721f3594f763d5a3fbc1354ee352e2d72ce2be2d112c21dfee1daef899",
+    "src/app/results/page.tsx": "edf6fce167907e93f46efb991cf39bb05c9e607d7036779f9e358a408c9635dd",
+    "src/components/action/action-workspace.tsx": "6dd76a00a3beeaf549ac544c8633abbe83a081009475df9eff959305a9a60617",
+    "src/components/audit/import-adapter.ts": "a9543c2dc3cf7db84ec5038aead2e79bffe29ecdfdaf253b68af60fa135bada8",
+    "src/components/audit/import-tab.tsx": "02e361d87a73d70d0ac366a51bcce638bc1aac6f0f7c0a3fe7a2b9e98d1e1b0f",
+    "src/components/audit/manual-tab.tsx": "2900b8eb7f6263bcf70b5435148690632dcd0fe8a079e3592fe24c214b52157c",
+    "src/components/audit/preview-rows.tsx": "16b302ac23b916f5ddec01c0ca8aa3d27717bc05a838f192977bfbcb578310a6",
+    "src/components/landing/try-demo-button.tsx": "e39e180e23d9c61dfd016b982f20ea0998fc4cb71ca2245bb398ef2bde6d0720",
+    "src/components/layout/site-footer.tsx": "9b224f8f1f2352cdf7522ca714fb0c6b1f316d55db051245d089c67ae2c57456",
+    "src/components/layout/site-header.tsx": "0f1ae64e3b0477522309bcb6c956bdd98e7294f7e4ea8e49abfd22116bbbc2d5",
+    "src/components/money-input.ts": "e84a4718e26ea60bda77bfd1e1d6d9c0163c543b444c410a6c98f1d26a872b37",
+    "src/components/results/expense-card.tsx": "89e8014f66a7277d0897cfb5431624170ecf661f874c71309efca0cc6be09c4a",
+    "src/components/results/family-goal-card.tsx": "00fa3a3245fca5689140c39cd985a079cd6fa6db4b88af9c26d6cb8cdeb476fc",
+    "src/components/ui-badges.tsx": "9c48c229febe3b8d14fdf98ca6eb4f61bbbac6c2f2c638d0f01b7f12e1efcaaf",
+    "src/components/use-hydrated.ts": "831b60dfc15887cb4a55b091c03f59a4cac20c5294dfc285c4e5b4ba1aaecde4",
+    "src/lib/ai/ai.test.ts": "263d97a086576b9a0d8289cb523d0203d8a497b13fce7d14cc17e664fd4dca16",
+    "src/lib/ai/fallback.ts": "6b43040678648e157109e23ba19993dc17663e9e1fe5c69b44a971a026881b49",
+    "src/lib/ai/grok.ts": "f7b35c15b3b0e7c9c81f2addfd22954f627f7e661ba30f049ea4d0778e1d91bf",
+    "src/lib/ai/rateLimit.ts": "f1418d6b1b233dd7db90974e7e5afefa1881dd34d96ca80f103969af2b0d0cc8",
+    "src/lib/ai/response-check.test.ts": "e27ba81bde7cb102f4962ed1e277f57ff79fad78a5a20ff5017448c732b10cee",
+    "src/lib/ai/response-check.ts": "5c34ed995746b8f37a528bea1beb001b5c332bfd6a5bc00335d41a0c88047b21",
+    "src/lib/ai/safe-request.test.ts": "d7f1aa5c1cf6d1fb9a03bd7219f23b247f542a12d4e9988d48597ddf06e7722c",
+    "src/lib/ai/safe-request.ts": "aee1e469ca021fa81f471f3219870b5301fa39b83b9090fb07dfc62c57d51de5",
+    "src/lib/engine/csv-errors.test.ts": "036d047f03624b246800c9fd84fbf51a779565a7b6077a21061e5148c788bffe",
+    "src/lib/engine/detect.ts": "58392574608e2218cf8f9bebd84d6768928609568ea27280e31df236ae902aac",
+    "src/lib/engine/engine.test.ts": "697325f767de1a2e59cefc9cd2903c46a04cf6e381b9c51eba6d4e6818778574",
+    "src/lib/engine/grouping.test.ts": "85a642a7f92d48e205d3eb29e2ee1ac8bcd28200483457935b8d8bc6edec81ba",
+    "src/lib/engine/grouping.ts": "df6b571cb6a52d73ec03132efe4b9ddc8c5a183094625b0fa1419c35c79156dc",
+    "src/lib/engine/lifecycle.test.ts": "84dcdd60fbc6c6c94ef46e8ca620fbc3379fbb50b220067b32d4d281eeac6aa3",
+    "src/lib/engine/lifecycle.ts": "4342b57a81b6ad49fb4906f0a08af6c50b2f74afd1c6f265d5933ea640983adf",
+    "src/lib/engine/money.test.ts": "e3ecd0c0c5cacd7d1a661a09f9151ebde93b8b9316c96384c334216f8c612f1f",
+    "src/lib/engine/money.ts": "9d8537db633f6855da3abc2fe0241a4f14b14023a477052b298e805e07254912",
+    "src/lib/engine/normalize.ts": "348079bb803518daf8115a8a8c407ece0f82dbfc279c9ab6e33fe7b587c19823",
+    "src/lib/engine/parse.ts": "5bbd6a1ed1efd6327dda75926b5cd411e5f4141abd8dfdcfcdc717634c3d0441",
+    "src/lib/engine/series.test.ts": "38417d6b2d27dbcf4f76b89b024ef776618f39378b5c366944deeda743ee2bfc",
+    "src/lib/fixtures/miller.ts": "9a4c198d823ad0c9da1c8ae56c403e9a72bee18f9ceb121a761ac7c03f91da2f",
+    "src/lib/format.ts": "a71bac1b35178e30a70b1b9ddd8418be50fdf3337abda5f60814f5d81582a910",
+    "src/lib/ids.test.ts": "d8d36c12a98eeafb8b526060de7e9507af95c1ab6ebf422fa835988408021b20",
+    "src/lib/ids.ts": "fb7437392c8de181d9505691f5df40e31f0377beea292aaba42e34625107e008",
+    "src/lib/schemas.ts": "0bb74425bba69de09dcaab0d30c19377e68a20934de5b5e1d19d8aa6420d33a4",
+    "src/lib/store.ts": "8a0ba27ac9e7423f9c0fa68c33837b22cc7031bccc280019f8d5f84d6d674578",
+    "src/lib/types.ts": "f58adac068e0dfdecf5dd2d1abb96d1d31ab39d7b8f83235781465d21c47fcb7",
+    "src/lib/utils.ts": "14300d758170c270c75b057f38fedb3793a5920ea872f0477e29fb131185e8a7"
+  },
+  "productCodeEditedByCurator": false,
+  "nextPrompt": "docs/prompts/11a-curator-manual-grouping-ui.md"
+}

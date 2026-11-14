@@ -1,0 +1,91 @@
+{
+  "checkedAtUTC": "2026-11-14T18:03:15.194310+00:00",
+  "productChangesSinceWave4": [],
+  "baseline": {
+    "unit": 309,
+    "e2e": 21
+  },
+  "probe": {
+    "netflixFragments": {
+      "expenses": [
+        {
+          "merchant": "Netflix",
+          "priceCents": 1549,
+          "frequency": "monthly",
+          "flags": []
+        },
+        {
+          "merchant": "Netflix",
+          "priceCents": 1549,
+          "frequency": "monthly",
+          "flags": []
+        }
+      ],
+      "annual": 37176
+    },
+    "netflixSameDay": {
+      "expenses": [
+        {
+          "merchant": "Netflix",
+          "priceCents": 1549,
+          "frequency": "monthly",
+          "flags": [
+            "duplicate_candidate"
+          ]
+        }
+      ],
+      "annual": 18588
+    },
+    "adobeParallel": {
+      "expenses": [
+        {
+          "merchant": "Adobe",
+          "priceCents": 1999,
+          "frequency": "monthly",
+          "flags": []
+        },
+        {
+          "merchant": "Adobe",
+          "priceCents": 999,
+          "frequency": "monthly",
+          "flags": []
+        }
+      ],
+      "annual": 35976
+    },
+    "adobeGenericSequential": {
+      "expenses": [
+        {
+          "merchant": "Adobe",
+          "priceCents": 1999,
+          "frequency": "monthly",
+          "flags": [
+            "price_increase"
+          ]
+        }
+      ],
+      "annual": 23988
+    },
+    "adobeKnownSequential": {
+      "expenses": [
+        {
+          "merchant": "Adobe Acrobat",
+          "priceCents": 1999,
+          "frequency": "monthly",
+          "flags": []
+        },
+        {
+          "merchant": "Adobe Photoshop",
+          "priceCents": 999,
+          "frequency": "monthly",
+          "flags": []
+        }
+      ],
+      "annual": 35976
+    }
+  },
+  "contractSHA256": "f3c4e21854f485b5b1ff9eadede069c94ab166687dd0c9ea2deeb96a87986d2e",
+  "contractStatus": "Accepted-with-section-14",
+  "productCodeEditedByCurator": false,
+  "temporaryProbeRemoved": true
+}

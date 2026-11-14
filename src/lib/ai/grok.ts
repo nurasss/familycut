@@ -1,7 +1,9 @@
 // xAI Grok client (OpenAI-compatible chat completions). Server-side only.
-// Only the fields of ActionRequest are ever sent to the model (TZ §10.1, §11.2). Nothing is logged.
+// Only the fields of ActionRequest are ever sent to the model (TZ §10.1, §11.2), with the merchant reduced to a
+// safe canonical name (see safe-request.ts). Nothing is logged.
 import { formatUsd } from '@/lib/format';
-import { actionResponseSchema } from '@/lib/schemas';
+import { validateModelAnswer } from '@/lib/ai/response-check';
+import { sanitizeActionRequest } from '@/lib/ai/safe-request';
 import type { ActionRequest, ActionResponse } from '@/lib/types';
 
 const XAI_URL = 'https://api.x.ai/v1/chat/completions';
@@ -57,7 +59,7 @@ function userPrompt(req: ActionRequest): string {
   return lines.join('\n');
 }
 
-/** Parse + validate model output; returns null if unusable. */
+/** Parse + validate model output (see response-check.ts); returns null if unusable. */
 export function parseModelOutput(content: unknown, req: ActionRequest): ActionResponse | null {
   if (typeof content !== 'string') return null;
   let raw: unknown;
@@ -66,24 +68,7 @@ export function parseModelOutput(content: unknown, req: ActionRequest): ActionRe
   } catch {
     return null;
   }
-  if (typeof raw !== 'object' || raw === null) return null;
-  const r = raw as Record<string, unknown>;
-  const orNull = (v: unknown) => (typeof v === 'string' && v.trim() !== '' ? v.trim() : null);
-  const candidate = {
-    subject: orNull(r.subject),
-    body: orNull(r.body),
-    callScript: orNull(r.callScript),
-    steps: Array.isArray(r.steps) ? r.steps : [],
-    limitations: Array.isArray(r.limitations) ? r.limitations : [],
-    source: 'ai' as const,
-  };
-  const parsed = actionResponseSchema.safeParse(candidate);
-  if (!parsed.success) return null;
-  const out = parsed.data;
-  // Required content per action type (§10.3).
-  if (req.action === 'cut' && !out.body) return null;
-  if (req.action === 'negotiate' && !out.callScript) return null;
-  return out;
+  return validateModelAnswer(raw, req);
 }
 
 async function callOnce(
@@ -116,7 +101,10 @@ async function callOnce(
  * Ask Grok for an action text. Returns null on any failure (no key, HTTP error, timeout, invalid
  * output after one retry) so the caller can use the local fallback.
  */
-export async function generateWithGrok(req: ActionRequest): Promise<ActionResponse | null> {
+export async function generateWithGrok(input: ActionRequest): Promise<ActionResponse | null> {
+  // Last line of defence before the network: whatever the caller passed, the model only sees the safe merchant
+  // name (allowlist or "Service provider"). The original value is not kept, retried, or logged.
+  const req = sanitizeActionRequest(input);
   const apiKey = process.env.XAI_API_KEY?.trim();
   if (!apiKey) return null;
   const model = process.env.XAI_MODEL?.trim() || DEFAULT_MODEL;
