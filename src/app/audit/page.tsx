@@ -1,8 +1,231 @@
+"use client";
+
+import { useCallback, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowRight } from "lucide-react";
+import { useAuditStore } from "@/lib/store";
+import type { Expense } from "@/lib/types";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { ManualTab } from "@/components/audit/manual-tab";
+import { ImportTab } from "@/components/audit/import-tab";
+import { useHasHydrated } from "@/components/use-hydrated";
+import { cn } from "@/lib/utils";
+
+type AuditTabId = "manual" | "paste" | "csv";
+
+const TABS: { id: AuditTabId; label: string }[] = [
+  { id: "manual", label: "Add manually" },
+  { id: "paste", label: "Paste transactions" },
+  { id: "csv", label: "Upload CSV" },
+];
+
 export default function AuditPage() {
+  const router = useRouter();
+  const hydrated = useHasHydrated();
+  const session = useAuditStore((s) => s.session);
+  const isDemo = useAuditStore((s) => s.isDemo);
+  const startSession = useAuditStore((s) => s.startSession);
+  const loadDemo = useAuditStore((s) => s.loadDemo);
+
+  const [activeTab, setActiveTab] = useState<AuditTabId>("manual");
+  const [pasteExpenses, setPasteExpenses] = useState<Expense[]>([]);
+  const [csvExpenses, setCsvExpenses] = useState<Expense[]>([]);
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
+  const tabRefs = useRef<Record<AuditTabId, HTMLButtonElement | null>>({
+    manual: null,
+    paste: null,
+    csv: null,
+  });
+
+  const handlePasteExpenses = useCallback((expenses: Expense[]) => {
+    setPasteExpenses(expenses);
+    setAnalyzeError(null);
+  }, []);
+
+  const handleCsvExpenses = useCallback((expenses: Expense[]) => {
+    setCsvExpenses(expenses);
+    setAnalyzeError(null);
+  }, []);
+
+  const handleTabKeyDown = (
+    e: React.KeyboardEvent<HTMLButtonElement>,
+    idx: number,
+  ) => {
+    let nextIdx: number | null = null;
+    if (e.key === "ArrowRight") nextIdx = (idx + 1) % TABS.length;
+    else if (e.key === "ArrowLeft")
+      nextIdx = (idx - 1 + TABS.length) % TABS.length;
+    else if (e.key === "Home") nextIdx = 0;
+    else if (e.key === "End") nextIdx = TABS.length - 1;
+
+    if (nextIdx !== null) {
+      e.preventDefault();
+      const target = TABS[nextIdx];
+      setActiveTab(target.id);
+      setAnalyzeError(null);
+      tabRefs.current[target.id]?.focus();
+    }
+  };
+
+  const manualCount = hydrated && session && !isDemo ? session.expenses.length : 0;
+
+  const readyCount =
+    activeTab === "manual"
+      ? manualCount
+      : activeTab === "paste"
+        ? pasteExpenses.length
+        : csvExpenses.length;
+
+  const handleAnalyze = () => {
+    setAnalyzeError(null);
+    if (activeTab === "manual") {
+      if (!session || isDemo || session.expenses.length === 0) {
+        setAnalyzeError(
+          "Add at least one expense manually, or choose Try demo data.",
+        );
+        return;
+      }
+      router.push("/results");
+      return;
+    }
+
+    const expenses = activeTab === "paste" ? pasteExpenses : csvExpenses;
+    if (expenses.length === 0) {
+      setAnalyzeError(
+        activeTab === "paste"
+          ? "Preview pasted transactions with at least one recurring expense first."
+          : "Upload and preview a CSV with at least one recurring expense first.",
+      );
+      return;
+    }
+
+    startSession(expenses, { isDemo: false });
+    router.push("/results");
+  };
+
+  const handleTryDemo = () => {
+    loadDemo();
+    router.push("/results");
+  };
+
   return (
-    <main>
-      <h1>Audit</h1>
-      <p>TODO frontend</p>
-    </main>
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <SiteHeader variant="app" currentStep={1} />
+
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-8 pb-28 sm:px-6">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+            Add your recurring expenses
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">
+            Use any method. Nothing is uploaded — it&apos;s processed in your
+            browser.
+          </p>
+        </div>
+
+        {/* Accessible 3-tab selector */}
+        <div
+          role="tablist"
+          aria-label="Expense input method"
+          className="mt-6 flex overflow-x-auto border-b border-border"
+        >
+          {TABS.map((tab, idx) => {
+            const selected = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                ref={(el) => {
+                  tabRefs.current[tab.id] = el;
+                }}
+                type="button"
+                role="tab"
+                id={`tab-${tab.id}`}
+                aria-selected={selected}
+                tabIndex={selected ? 0 : -1}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setAnalyzeError(null);
+                }}
+                onKeyDown={(e) => handleTabKeyDown(e, idx)}
+                className={cn(
+                  "relative shrink-0 min-h-11 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap",
+                  selected
+                    ? "font-semibold text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {tab.label}
+                {selected && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-x-0 bottom-0 h-0.5 bg-primary"
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-6">
+          <div
+            role="tabpanel"
+            aria-labelledby="tab-manual"
+            hidden={activeTab !== "manual"}
+          >
+            {activeTab === "manual" && <ManualTab />}
+          </div>
+          <div
+            role="tabpanel"
+            aria-labelledby="tab-paste"
+            hidden={activeTab !== "paste"}
+          >
+            <ImportTab mode="paste" onExpensesChange={handlePasteExpenses} />
+          </div>
+          <div
+            role="tabpanel"
+            aria-labelledby="tab-csv"
+            hidden={activeTab !== "csv"}
+          >
+            <ImportTab mode="csv" onExpensesChange={handleCsvExpenses} />
+          </div>
+        </div>
+
+        {analyzeError && (
+          <p
+            role="alert"
+            className="mt-4 rounded-lg border border-red-200 bg-[var(--chip-cut-bg)]/60 px-4 py-3 text-sm font-medium text-[var(--chip-cut)]"
+          >
+            {analyzeError}
+          </p>
+        )}
+      </main>
+
+      {/* Bottom sticky action bar */}
+      <div className="sticky bottom-0 z-20 border-t border-border bg-card shadow-[0_-4px_16px_rgba(28,25,23,0.06)]">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <button
+            type="button"
+            onClick={handleTryDemo}
+            className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+          >
+            Try demo data
+          </button>
+
+          <button
+            type="button"
+            onClick={handleAnalyze}
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-95"
+          >
+            <span>
+              Analyze expenses{readyCount > 0 ? ` (${readyCount})` : ""}
+            </span>
+            <ArrowRight className="size-4" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
+      <SiteFooter />
+    </div>
   );
 }
