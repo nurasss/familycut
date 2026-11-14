@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+// Zod 4 probes `new Function('')` to enable its JIT fast path. Under our CSP (no 'unsafe-eval') that probe is
+// reported as a violation in the console even though it is caught. JIT is irrelevant for these tiny schemas.
+z.config({ jitless: true });
+
 export const frequencySchema = z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'unknown']);
 
 const MAX_CENTS = 100_000_000; // $1,000,000 sanity cap
