@@ -8,6 +8,7 @@ import {
   applyMapping,
   parseCsv,
   parsePaste,
+  rowLine,
   suggestMapping,
 } from "@/lib/engine/parse";
 import type {
@@ -134,7 +135,7 @@ export function evaluateMappedRows(
     const parseResult = applyMapping(effectiveRows, mapping);
     const errorByEffectiveIdx = new Map<number, string>();
     for (const err of parseResult.errors) {
-      const effIdx = err.line - 2;
+      const effIdx = err.index;
       if (effIdx >= 0 && effIdx < activeIndices.length) {
         errorByEffectiveIdx.set(effIdx, err.reason);
       }
@@ -152,7 +153,7 @@ export function evaluateMappedRows(
       if (errReason) {
         activePreviewByIdx.set(rawIdx, {
           rawIndex: rawIdx,
-          lineNumber: rawIdx + 2,
+          lineNumber: rowLine(rawRows[rawIdx], rawIdx),
           raw,
           status: "error",
           reason: errReason,
@@ -164,7 +165,7 @@ export function evaluateMappedRows(
       if (!tx) {
         activePreviewByIdx.set(rawIdx, {
           rawIndex: rawIdx,
-          lineNumber: rawIdx + 2,
+          lineNumber: rowLine(rawRows[rawIdx], rawIdx),
           raw,
           status: "error",
           reason: "Could not parse row",
@@ -198,7 +199,7 @@ export function evaluateMappedRows(
 
       activePreviewByIdx.set(rawIdx, {
         rawIndex: rawIdx,
-        lineNumber: rawIdx + 2,
+        lineNumber: rowLine(rawRows[rawIdx], rawIdx),
         raw,
         status,
         reason,
@@ -210,7 +211,7 @@ export function evaluateMappedRows(
       if (skippedIndices.has(rawIdx)) {
         return {
           rawIndex: rawIdx,
-          lineNumber: rawIdx + 2,
+          lineNumber: rowLine(rawRows[rawIdx], rawIdx),
           raw: overrides[rawIdx] ?? raw,
           status: "skipped",
           reason: "Skipped — excluded",
@@ -219,7 +220,7 @@ export function evaluateMappedRows(
       return (
         activePreviewByIdx.get(rawIdx) ?? {
           rawIndex: rawIdx,
-          lineNumber: rawIdx + 2,
+          lineNumber: rowLine(rawRows[rawIdx], rawIdx),
           raw,
           status: "error",
           reason: "Could not parse row",

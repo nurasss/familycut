@@ -60,6 +60,11 @@ function rowsFromPapa(text: string): RawRow[] {
 }
 
 /** Strict-ish date parser. Returns YYYY-MM-DD or null. */
+/** Line number the user sees for a raw row (see "Line numbers" above). `index` is its 0-based position. */
+export function rowLine(row: RawRow, index: number): number {
+  return pasteLines.get(row) ?? index + 2;
+}
+
 export function parseDate(input: string): string | null {
   const s = input.trim();
   let y: number, m: number, d: number;
