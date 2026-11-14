@@ -1,0 +1,21 @@
+Этап 2B принят: 61 тест, Grok-клиент и fallback в порядке. Я прогнал свои данные через Paste: MM/DD, weekly, price change и битая строка работают. ЭТАП 3B — правки движка, e2e, безопасность, README, подготовка деплоя. Параллельно фронтенд делает 3A в src/app/** и src/components/**. Туда не заходи, кроме добавления e2e-тестов в отдельную папку e2e/.
+
+1. Правки движка (с тестами):
+   a. Номера строк при Paste сдвинуты на +1: первая вставленная строка отображается как "Line 2", битая 13-я — как "Line 14". Для Paste нумеруй строки так, как их видит пользователь (1-based по вставленному тексту). Для CSV с заголовком: первая строка данных = line 2, как в Excel. Это нормально, но поведение должно быть единым и задокументированным.
+   b. Для магазинов (isRegularStore) не ставь флаг price_increase и не добавляй reason "Price changed…". У продуктовых покупок цена всегда разная, это шум.
+   c. normalize: "NYT DIGITAL SUBSCR" → "New York Times". Добавь в словарь ещё ~15 частых US-подписок и счетов: Hulu, Disney+, Max/HBO, YouTube Premium, Amazon Prime, Apple, Google One, Peloton, ADT, Verizon, AT&T, T-Mobile, Xfinity, Spectrum, Dropbox, Adobe, Microsoft 365. Аббревиатуры не переводи в Title Case ("Nyt"): если слово целиком в верхнем регистре и не длиннее 3 букв, оставляй его как есть.
+2. Playwright smoke (e2e/, конфиг playwright.config.ts, скрипт "test:e2e"; webServer = next start на свободном порту):
+   - T-14: / → Try demo → /results показывает $1,769.52 / $725.76 / $0.00 и 48% → Open action plan → Copy → текст в буфере не пустой. Перехват /api/ai/action не нужен: без ключа приходит fallback.
+   - T-10: route /api/ai/action замокан с 500 → на экране всё равно текст с тегом "Template".
+   - T-11: Delete my data → confirm → reload → localStorage пуст, /results показывает empty state.
+   - T-13: viewport 375 и 360 на /, /audit, /results, /action → document.documentElement.scrollWidth <= innerWidth.
+   - Paste-сценарий: вставка 3 строк Netflix → Analyze → на /results есть Netflix $185.88/yr (T-01).
+   - Сеть: на всём demo-пути на сервер уходит только POST /api/ai/action с ключами ровно {merchant, action, frequency, currentPriceCents, targetPriceCents?, tone} (NFR-04).
+   Если e2e упадёт на баге фронтенда, не чини UI, а опиши баг в отчёте (селектор, шаг, ожидание).
+3. Безопасность (next.config.ts headers): Content-Security-Policy (default-src 'self'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' — проверь, что Next 16 и next/font работают, при необходимости ослабь минимально и объясни), X-Content-Type-Options nosniff, Referrer-Policy strict-origin-when-cross-origin, Permissions-Policy (camera=(), microphone=(), geolocation=()), X-Frame-Options DENY. Отключи заголовок x-powered-by. Проверь в прод-сборке, что консоль чистая и шрифты грузятся.
+4. README.md (переписать полностью, English): что это, live URL (плейсхолдер), Try demo, как запустить (npm i, .env.local с XAI_API_KEY/XAI_MODEL опционально, dev/test/test:e2e), архитектура (client-only parsing → engine → store; сервер только /api/ai/action), Privacy (что уходит на сервер, а что нет: дословно из ТЗ §9.1 и §11.2), три метрики и различие potential/reported (§8.2), покрытые T-xx, Known limitations (localStorage не шифруется, rate limit в памяти одного инстанса, эвристики детекции, нет PDF-выписок, только USD/EN, нет cross-device), Disclaimer "Not financial or legal advice". Скриншоты не нужны.
+5. Деплой-подготовка: проверь, что `npm run build && npm start` работают с чистого клона без .env (fallback). Добавь в README раздел Deploy (Vercel: импорт репозитория, env XAI_API_KEY, XAI_MODEL). Сам ни во что не логинься и ничего не пушь.
+6. Закоммить docs/ (TZ.md, CONTRACT.md, design/, prompts/) отдельным коммитом "docs: spec, design, prompts". .claude/ и .env.local не коммить: добавь .claude/ в .gitignore.
+
+ГОТОВНОСТЬ: test, test:e2e, typecheck, lint, build зелёные (если e2e красный из-за фронтенда, это допустимо, но с описанием). Коммиты: "fix(engine): review fixes", "test: e2e smoke", "chore: security headers + readme", "docs: spec, design, prompts".
+В ОТВЕТЕ: вывод тестов (unit + e2e), итоговая CSP, найденные баги фронтенда, отступления.
