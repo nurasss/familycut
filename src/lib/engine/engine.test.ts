@@ -37,8 +37,32 @@ describe('normalizeMerchant', () => {
     ['ICLOUD.COM/BILL CA', 'iCloud'],
     ['WHOLEFDS MKT 10234', 'Whole Foods'],
     ['ACME WIDGETS #12 TX', 'Acme Widgets'],
+    ['NYT DIGITAL SUBSCR', 'New York Times'],
+    ['NYTIMES*DIGITAL 800-698-4637', 'New York Times'],
+    ['HULU 877-8244858 CA', 'Hulu'],
+    ['DISNEY PLUS 888-905-7888', 'Disney+'],
+    ['HBO MAX 844-1234', 'HBO Max'],
+    ['GOOGLE *YOUTUBE PREMIUM', 'YouTube Premium'],
+    ['AMAZON PRIME*2K4TT8 AMZN.COM/BILL WA', 'Amazon Prime'],
+    ['APPLE.COM/BILL 866-712-7753 CA', 'Apple'],
+    ['GOOGLE *GOOGLE ONE', 'Google One'],
+    ['PELOTON MEMBERSHIP', 'Peloton'],
+    ['ADT SECURITY SERVICES', 'ADT'],
+    ['VERIZON WIRELESS PAYMENT', 'Verizon'],
+    ['ATT*BILL PAYMENT', 'AT&T'],
+    ['T-MOBILE AUTOPAY', 'T-Mobile'],
+    ['XFINITY MOBILE', 'Xfinity'],
+    ['SPECTRUM 855-707-7328', 'Spectrum'],
+    ['DROPBOX*ABCDEF', 'Dropbox'],
+    ['ADOBE *CREATIVE CLOUD', 'Adobe'],
+    ['MICROSOFT*365 PERSONAL', 'Microsoft 365'],
+    ['ACME GYM 55', 'ACME GYM'.replace('ACME', 'Acme')],
   ])('%s -> %s', (raw, expected) => {
     expect(normalizeMerchant(raw)).toBe(expected);
+  });
+
+  it('keeps short all-caps abbreviations as is', () => {
+    expect(normalizeMerchant('XYZ TOOLS')).toBe('XYZ Tools');
   });
 
   it('does not merge different providers', () => {
@@ -86,7 +110,29 @@ describe('parse helpers', () => {
     expect(rows[1]).toEqual({ Date: '10/05/2026', Description: 'PLANET FITNESS', Amount: '-29.99' });
     const { rows: txs, errors } = applyMapping(rows, { ...MAPPING, transactionId: undefined });
     expect(txs).toHaveLength(2);
-    expect(errors).toEqual([{ line: 4, reason: 'Missing date' }]);
+    expect(errors).toEqual([{ line: 3, index: 2, reason: 'Missing date' }]);
+  });
+
+  it('line numbers: pasted text is 1-based as the user sees it (13th pasted line = Line 13)', () => {
+    const good = (i: number) => `2026-10-${String(i).padStart(2, '0')} SHOP ${i} -${i}.00`;
+    const lines = Array.from({ length: 12 }, (_, i) => good(i + 1));
+    lines.push('this line is broken');
+    const { errors } = applyMapping(parsePaste(lines.join('\n')), { ...MAPPING, transactionId: undefined });
+    expect(errors).toEqual([{ line: 13, index: 12, reason: 'Missing date' }]);
+  });
+
+  it('line numbers: blank lines in pasted text are counted', () => {
+    const { errors } = applyMapping(parsePaste('2026-10-01 A -1.00\n\nbroken'), { ...MAPPING, transactionId: undefined });
+    expect(errors[0]).toMatchObject({ line: 3, index: 1 });
+  });
+
+  it('line numbers: CSV with header — first data row is line 2 like Excel', () => {
+    const rows = parseCsv('Date,Description,Amount\nbad,A,-1.00\n2026-10-02,B,-2.00\n2026-10-03,C,oops');
+    const { errors } = applyMapping(rows, MAPPING);
+    expect(errors).toEqual([
+      { line: 2, index: 0, reason: 'Invalid date' },
+      { line: 4, index: 2, reason: 'Invalid amount' },
+    ]);
   });
 
   it('parsePaste delegates to CSV when there is a header row', () => {
@@ -127,10 +173,10 @@ describe('applyMapping', () => {
     const { rows: ok, errors } = applyMapping(rows, MAPPING);
     expect(ok).toHaveLength(1);
     expect(errors).toEqual([
-      { line: 3, reason: 'Invalid date' },
-      { line: 4, reason: 'Missing amount' },
-      { line: 5, reason: 'Invalid amount' },
-      { line: 6, reason: 'Missing description' },
+      { line: 3, index: 1, reason: 'Invalid date' },
+      { line: 4, index: 2, reason: 'Missing amount' },
+      { line: 5, index: 3, reason: 'Invalid amount' },
+      { line: 6, index: 4, reason: 'Missing description' },
     ]);
     // A mapping pointing to a nonexistent column yields clear per-row errors, not a crash.
     const bad = applyMapping(rows, { ...MAPPING, amount: 'Nope' });
@@ -252,6 +298,20 @@ describe('detectRecurring', () => {
     expect(e.priceCents).toBe(1799);
     expect(e.flags).toContain('price_increase');
     expect(e.reasons).toContain('Price changed from $15.49 to $17.99');
+  });
+
+  it('stores: varying grocery prices produce no price-change reason or flag', () => {
+    const txs = [
+      tx({ id: 'g1', date: '2026-07-04', merchant: 'WHOLEFDS MKT 1', cents: 5000 }),
+      tx({ id: 'g2', date: '2026-08-04', merchant: 'WHOLEFDS MKT 1', cents: 5100 }),
+      tx({ id: 'g3', date: '2026-09-04', merchant: 'WHOLEFDS MKT 1', cents: 9000 }),
+      tx({ id: 'g4', date: '2026-10-04', merchant: 'WHOLEFDS MKT 1', cents: 9100 }),
+    ];
+    const [e] = detectRecurring(txs);
+    expect(e.flags).not.toContain('price_increase');
+    expect(e.reasons.join(' ')).not.toMatch(/Price changed|Amounts vary/);
+    expect(e.reasons).toContain(STORE_REASON);
+    expect(e.confidence).toBe('low');
   });
 
   it('pickReviewCandidates never decides for the user and caps at 5', () => {

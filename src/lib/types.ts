@@ -98,5 +98,6 @@ export type ColumnMapping = {
 
 export type ParseResult = {
   rows: Transaction[];
-  errors: { line: number; reason: string }[];
+  /** line: line number as the user sees it (see engine/parse.ts); index: 0-based position in the input rows. */
+  errors: { line: number; index: number; reason: string }[];
 };

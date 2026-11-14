@@ -10,6 +10,16 @@ import type { ColumnMapping, ParseResult, RawRow, Transaction } from '@/lib/type
 
 export const MAX_FILE_BYTES = 5 * 1024 * 1024;
 export const MAX_ROWS = 10_000;
+/**
+ * Line numbers (errors[].line) are the numbers the user sees in what they pasted/uploaded:
+ *  - free-form pasted lines (no header): the first pasted line is line 1;
+ *  - CSV file or pasted CSV with a header row: the header is line 1, the first data row is line 2 (like Excel).
+ * Rows produced by parsePaste remember their own line (so blank lines in the pasted text are counted);
+ * for any other row the line is `index + 2`. Every error also carries `index`, the 0-based position in the
+ * array passed to applyMapping, which is what UIs should use to find the offending row.
+ */
+const pasteLines = new WeakMap<RawRow, number>();
+
 /** Prefix of ids generated for rows without a real bank transaction ID. */
 export const GENERATED_ID_PREFIX = 'row-';
 
@@ -128,7 +138,11 @@ const PASTE_LINE =
 export function parsePaste(text: string): RawRow[] {
   checkSize(text);
   const clean = stripBom(text);
-  const lines = clean.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const numbered = clean
+    .split(/\r?\n/)
+    .map((l, i) => ({ text: l.trim(), line: i + 1 }))
+    .filter((l) => l.text !== '');
+  const lines = numbered.map((l) => l.text);
   if (lines.length === 0) return [];
   if (lines.length > MAX_ROWS + 1) throw new Error(`Too many rows (max ${MAX_ROWS.toLocaleString('en-US')}).`);
 
@@ -137,11 +151,17 @@ export function parsePaste(text: string): RawRow[] {
     return rowsFromPapa(lines.join('\n'));
   }
 
-  return lines.map((line) => {
+  return numbered.map(({ text: line, line: lineNo }) => {
     const m = PASTE_LINE.exec(line);
-    if (!m) return { Date: '', Description: line, Amount: '' };
-    const description = m[2].trim().replace(/^"(.*)"$/, '$1');
-    return { Date: m[1], Description: description, Amount: m[3].trim() };
+    let row: RawRow;
+    if (!m) {
+      row = { Date: '', Description: line, Amount: '' };
+    } else {
+      const description = m[2].trim().replace(/^"(.*)"$/, '$1');
+      row = { Date: m[1], Description: description, Amount: m[3].trim() };
+    }
+    pasteLines.set(row, lineNo);
+    return row;
   });
 }
 
@@ -156,14 +176,15 @@ export function applyMapping(rows: RawRow[], mapping: ColumnMapping): ParseResul
   const pending: Pending[] = [];
 
   rows.forEach((row, i) => {
-    const line = i + 2; // header = line 1
+    const line = pasteLines.get(row) ?? i + 2; // see "Line numbers" above
+    const fail = (reason: string) => void errors.push({ line, index: i, reason });
     const dateRaw = (row[mapping.date] ?? '').trim();
     const description = (row[mapping.description] ?? '').trim();
 
-    if (!dateRaw) return void errors.push({ line, reason: 'Missing date' });
+    if (!dateRaw) return fail('Missing date');
     const date = parseDate(dateRaw);
-    if (!date) return void errors.push({ line, reason: 'Invalid date' });
-    if (!description) return void errors.push({ line, reason: 'Missing description' });
+    if (!date) return fail('Invalid date');
+    if (!description) return fail('Missing description');
 
     // Signed amount: negative = money out.
     let signed: number;
@@ -171,23 +192,23 @@ export function applyMapping(rows: RawRow[], mapping: ColumnMapping): ParseResul
     const amountRaw = (row[mapping.amount] ?? '').trim();
     if (mapping.debitColumn && debitRaw) {
       const debit = parseAmountCents(debitRaw);
-      if (debit === null) return void errors.push({ line, reason: 'Invalid amount' });
+      if (debit === null) return fail('Invalid amount');
       signed = -Math.abs(debit);
     } else {
-      if (!amountRaw) return void errors.push({ line, reason: 'Missing amount' });
+      if (!amountRaw) return fail('Missing amount');
       const v = parseAmountCents(amountRaw);
-      if (v === null) return void errors.push({ line, reason: 'Invalid amount' });
+      if (v === null) return fail('Invalid amount');
       if (mapping.debitColumn) signed = Math.abs(v); // separate credit column
       else signed = mapping.signConvention === 'negative_is_debit' ? v : -v;
     }
-    if (signed === 0) return void errors.push({ line, reason: 'Zero amount' });
+    if (signed === 0) return fail('Zero amount');
 
     const idRaw = mapping.transactionId ? (row[mapping.transactionId] ?? '').trim() : '';
     const incoming = signed > 0;
     pending.push({
       incoming,
       tx: {
-        id: idRaw || `${GENERATED_ID_PREFIX}${line}`,
+        id: idRaw || `${GENERATED_ID_PREFIX}${i + 2}`,
         date,
         merchantRaw: description,
         merchantNormalized: normalizeMerchant(description),

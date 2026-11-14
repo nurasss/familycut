@@ -15,15 +15,24 @@ const BRANDS: [RegExp, string][] = [
   [/\bHBO\s*MAX\b|\bHBOMAX\b/, 'HBO Max'],
   [/\bPARAMOUNT\s*(\+|PLUS)/, 'Paramount+'],
   [/\bPEACOCK\b/, 'Peacock'],
+  [/\bYOUTUBE\s*(PREMIUM|MUSIC|TV)\b|\bGOOGLE\s*\*?\s*YOUTUBE\b/, 'YouTube Premium'],
   [/\bYOUTUBE\b/, 'YouTube'],
+  [/\bNYT\b|\bNY\s*TIMES\b|\bNEW\s*YORK\s*TIMES\b|\bNYTIMES\b/, 'New York Times'],
+  [/\bPELOTON\b/, 'Peloton'],
+  [/\bADT\b/, 'ADT'],
+  [/\bAUDIBLE\b/, 'Audible'],
+  [/\bSIRIUS\s*XM\b|\bSIRIUSXM\b/, 'SiriusXM'],
+  [/\bAPPLE\.COM\/BILL\b|\bAPPLE\s*(SERVICES|ONE|TV\+?)\b|\bITUNES\b/, 'Apple'],
   [/\bAMAZON\s*PRIME\b|\bPRIME\s*VIDEO\b|\bAMZN\s*PRIME\b/, 'Amazon Prime'],
   [/\bAPPLE\s*MUSIC\b/, 'Apple Music'],
   [/\bICLOUD\b/, 'iCloud'],
   [/\bGOOGLE\s*\*?\s*ONE\b/, 'Google One'],
   [/\bDROPBOX\b/, 'Dropbox'],
   [/\bADOBE\b/, 'Adobe'],
+  [/\bMICROSOFT\s*\*?\s*(365|OFFICE)\b|\bM365\b|\bMSFT\s*\*?\s*(365|OFFICE)\b/, 'Microsoft 365'],
   [/\bMICROSOFT\b|\bMSFT\b/, 'Microsoft'],
-  [/\bCOMCAST\b|\bXFINITY\b/, 'Comcast'],
+  [/\bXFINITY\b/, 'Xfinity'],
+  [/\bCOMCAST\b/, 'Comcast'],
   [/\bSPECTRUM\b/, 'Spectrum'],
   [/\bVERIZON\b/, 'Verizon'],
   [/\bAT\s*&\s*T\b|\bATT\s*\*/, 'AT&T'],
@@ -53,7 +62,11 @@ const NOISE_WORDS = new Set([
   'REFUND', 'RETURN', 'CREDIT', 'REVERSAL', 'SQ', 'TST', 'PP', 'PAYPAL',
 ]);
 
+const SMALL_WORDS = new Set(['THE', 'AND', 'FOR']);
+
 function titleCase(word: string): string {
+  // Short all-caps words are abbreviations (NYT, ADT, YMCA-like): keep as is.
+  if (/^[A-Z]{1,3}$/.test(word) && !SMALL_WORDS.has(word)) return word;
   return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
 }
 

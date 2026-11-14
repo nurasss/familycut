@@ -161,7 +161,9 @@ function describe(series: Series): Omit<Expense, 'id'> | null {
       reasons.push(`${charges} charges of ${formatUsd(last)}, ~${avgGap} days apart`);
     } else {
       reasons.push(`${charges} charges, ~${avgGap} days apart`);
-      if (change) {
+      if (store) {
+        // Grocery/restaurant prices always differ: no price-change noise.
+      } else if (change) {
         reasons.push(`Price changed from ${formatUsd(change[0])} to ${formatUsd(change[1])}`);
         if (change[1] > change[0]) flags.push('price_increase');
       } else {
