@@ -107,6 +107,31 @@ describe('money', () => {
     expect(computeTotals(e).plannedGoalPct).toBe(0);
   });
 
+  it('T-06 (money): undecided + low confidence is not in recurring', () => {
+    const t = computeTotals([exp({ priceCents: 12000, frequency: 'yearly', confidence: 'low' })]);
+    expect(t.recurringAnnualCents).toBe(0);
+  });
+
+  it('low confidence IS in recurring once the user decides', () => {
+    const t = computeTotals([
+      exp({ priceCents: 12000, frequency: 'yearly', confidence: 'low', decision: 'keep' }),
+    ]);
+    expect(t.recurringAnnualCents).toBe(12000);
+  });
+
+  it('reported savings are never negative (price went up)', () => {
+    const t = computeTotals([
+      exp({
+        priceCents: 7500,
+        decision: 'negotiate',
+        targetPriceCents: 6000,
+        actionStatus: 'completed',
+        reportedNewPriceCents: 8000,
+      }),
+    ]);
+    expect(t.reportedAnnualCents).toBe(0);
+  });
+
   it('formatUsd', () => {
     expect(formatUsd(123456)).toBe('$1,234.56');
     expect(formatUsd(5)).toBe('$0.05');

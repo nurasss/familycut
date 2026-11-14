@@ -26,6 +26,10 @@ export function computeTotals(expenses: Expense[], goal?: FamilyGoal): Totals {
 
   for (const e of expenses) {
     if (e.decision === 'not_recurring' || e.frequency === 'unknown') continue;
+    // Recurring = confirmed by the user, or detected with enough confidence (TZ §8.1).
+    const confirmed = e.decision === 'keep' || e.decision === 'cut' || e.decision === 'negotiate';
+    const trusted = e.confidence !== 'low';
+    if (!confirmed && !trusted) continue;
     const mult = MULTIPLIER[e.frequency];
     recurring += e.priceCents * mult;
 
@@ -37,9 +41,9 @@ export function computeTotals(expenses: Expense[], goal?: FamilyGoal): Totals {
 
     if (e.actionStatus === 'completed') {
       if (e.decision === 'cut') {
-        reported += (e.priceCents - (e.reportedNewPriceCents ?? 0)) * mult;
+        reported += Math.max(0, e.priceCents - (e.reportedNewPriceCents ?? 0)) * mult;
       } else if (e.decision === 'negotiate' && e.reportedNewPriceCents !== undefined) {
-        reported += (e.priceCents - e.reportedNewPriceCents) * mult;
+        reported += Math.max(0, e.priceCents - e.reportedNewPriceCents) * mult;
       }
     }
   }

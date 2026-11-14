@@ -50,20 +50,42 @@ src/lib/                 BACKEND
 
 ## Функции
 
-| Функция | Модуль | Статус | Описание |
-|---|---|---|---|
-| `MULTIPLIER` | `engine/money` | готово | `{weekly:52, monthly:12, quarterly:4, yearly:1, unknown:0}` |
-| `annualCents(priceCents, freq)` | `engine/money` | готово | годовой эквивалент |
-| `computeTotals(expenses, goal?)` | `engine/money` | готово | три метрики + % цели (§8) |
-| `formatUsd(cents)` | `format` | готово | `"$1,234.56"` |
-| `fallbackAction(req)` | `ai/fallback` | готово | шаблон письма/скрипта (§10.4), `source: 'fallback'` |
-| `parseCsv(text)` | `engine/parse` | заглушка | CSV → `RawRow[]` |
-| `parsePaste(text)` | `engine/parse` | заглушка | вставленный текст → `RawRow[]` |
-| `applyMapping(rows, mapping)` | `engine/parse` | заглушка | `RawRow[]` → `ParseResult` |
-| `normalizeMerchant(raw)` | `engine/normalize` | заглушка | `NETFLIX.COM 8844` → `Netflix` |
-| `detectRecurring(txs)` | `engine/detect` | заглушка | `Transaction[]` → `Expense[]` |
+Все чистые, без сети; работают в браузере.
 
-Заглушки бросают `Error('not implemented')` до следующего этапа.
+| Функция | Модуль | Описание |
+|---|---|---|
+| `MULTIPLIER`, `annualCents(priceCents, freq)` | `engine/money` | множители §8.1, годовой эквивалент |
+| `computeTotals(expenses, goal?)` | `engine/money` | три метрики + % цели. **recurring** = не `not_recurring`, frequency ≠ unknown и (decision keep/cut/negotiate **или** confidence ≠ low). **reported** никогда < 0 |
+| `formatUsd(cents)` | `format` | `"$1,234.56"` |
+| `parseCsv(text): RawRow[]` | `engine/parse` | Papa Parse, BOM, авто-разделитель `, ; \t`. **Бросает `Error` с читаемым текстом** при файле > 5 МБ или > 10 000 строк / без заголовка |
+| `parsePaste(text): RawRow[]` | `engine/parse` | вставка: CSV с заголовком или строки `2026-10-03 NETFLIX.COM 8844 -15.49` → колонки `Date/Description/Amount`. Непонятные строки остаются с пустыми Date/Amount и попадут в `errors` |
+| `suggestMapping(headers): ColumnMapping \| null` | `engine/parse` | эвристика по названиям колонок; `null`, если date/description/amount не найдены (тогда UI просит выбрать вручную) |
+| `applyMapping(rows, mapping): ParseResult` | `engine/parse` | `rows: Transaction[]`, `errors: {line, reason}[]` (`line` = номер строки таблицы, заголовок = 1). Причины: `Missing date`, `Invalid date`, `Missing description`, `Missing amount`, `Invalid amount`, `Zero amount`. Битые строки не ломают импорт |
+| `parseDate(s)`, `parseAmountCents(s)` | `engine/parse` | хелперы (`YYYY-MM-DD`/`MM/DD/YYYY`; `$1,234.56`, `(15.49)`, `-15.49`) |
+| `normalizeMerchant(raw)` | `engine/normalize` | `NETFLIX.COM 8844` → `Netflix` |
+| `analyzeTransactions(txs)` | `engine/detect` | `{ expenses: Expense[], stats: { parsed, excludedRefunds, excludedDuplicates, credits } }` — основной вызов для `/audit` |
+| `detectRecurring(txs): Expense[]` | `engine/detect` | `analyzeTransactions(txs).expenses` |
+| `pickReviewCandidates(expenses, n=3): Expense[]` | `engine/detect` | топ 3–5 (n зажат в 3..5) для Review: undecided, известная частота, не «магазин», не low, с флагами или ≥ $100/год. Возвращает **копии** с первой строкой в `reasons` вида `Worth a review: …`; ничего не меняет и не ставит Cut |
+| `categorize(merchant)`, `isRegularStore(merchant)` | `engine/detect` | категории: Entertainment, Health & fitness, Utilities, Software, Groceries, Other |
+| `fallbackAction(req)` | `ai/fallback` | локальный шаблон (§10.4), зависит от `tone`; `source: 'fallback'` |
+
+### Соглашение о знаке `Transaction.amountCents`
+
+- `> 0` — списание (расход);
+- `< 0` и `isRefund: true` — возврат (в расходы не входит);
+- `< 0` и `isRefund: false` — входящий кредит (зарплата и т.п.), не расход.
+
+`Transaction.id` = банковский Transaction ID, если колонка выбрана и заполнена, иначе `row-<line>` (такой id считается «ID нет»).
+
+### Что находит `detectRecurring`
+
+- Дедуп: одинаковые date+merchant+amount+**реальный** transaction ID → одна запись (`stats.excludedDuplicates`). Без ID не удаляем, а ставим флаг `duplicate_candidate`.
+- Refund и входящие в суммы не попадают.
+- Частота по интервалам (недели 6–8, месяц 27–34, квартал 88–95, год 355–375 дней), цена = последняя; смена цены → reason `Price changed from $X to $Y`, при росте флаг `price_increase`.
+- Confidence: monthly 3+ → high, 2 → medium; weekly 2 → low, 3 → medium, 4+ → high; quarterly/yearly 2 → medium. Нестабильные суммы понижают уровень.
+- Одиночные списания попадают в список **только** если мерчант похож на подписку (категория/слова ANNUAL, MEMBERSHIP…): `confidence: 'low'`, частота `yearly`/`monthly` только если слово есть в описании, иначе `unknown`.
+- Магазины/рестораны: максимум `low` + reason `Regular store purchases — not a subscription`.
+- `Expense.id` детерминированный: `exp-<merchant-slug>-<priceCents>`.
 
 ## Store (`@/lib/store`)
 
@@ -92,12 +114,17 @@ State: `session: AuditSession | null`, `isDemo: boolean`.
 
 - `DEMO_EXPENSES` — 5 позиций из §15.1 (итог potential = 72576 ¢).
 - `DEMO_GOAL` — `Family trip`, 150000 ¢ (≈48%).
-- `DEMO_TRANSACTIONS_CSV` — 28 строк `Date,Description,Amount,Transaction ID` за авг–окт 2026: шумные названия, 1 refund, 1 дубль ID (`TX-1005`), grocery, годовой платёж $120, 2 входящие выплаты.
+- `DEMO_TRANSACTIONS_CSV` — 28 строк (проходит `parseCsv → suggestMapping → applyMapping → analyzeTransactions`) `Date,Description,Amount,Transaction ID` за авг–окт 2026: шумные названия, 1 refund, 1 дубль ID (`TX-1005`), grocery, годовой платёж $120, 2 входящие выплаты.
 - `SAMPLE_DATA_LABEL` — `'Sample data'` (обязательная метка в UI).
 
 ## API
 
-`POST /api/ai/action` — вход `ActionRequest`, выход `ActionResponse`. Сейчас всегда `source: 'fallback'`. Ошибки: `400 { error: 'invalid_json' | 'invalid_request' }`. Интеграция Grok — следующий этап; контракт ответа не изменится.
+`POST /api/ai/action` — вход `ActionRequest`, выход `ActionResponse`.
+
+- Grok (xAI, `https://api.x.ai/v1/chat/completions`, structured output `json_schema`) → `source: 'ai'`. Любой сбой (нет `XAI_API_KEY`, HTTP-ошибка, таймаут 8 с, невалидный ответ после 1 retry) → локальный шаблон, `source: 'fallback'`. HTTP-статус всегда 200 при валидном запросе, так что UI всегда получает текст.
+- В модель уходят только поля `ActionRequest`. Тексты и суммы не логируются.
+- Ошибки: `400 { error: 'invalid_json' | 'invalid_request' }`, `429 { error: 'rate_limited' }` + `Retry-After` (20 запросов/мин на IP, in-memory).
+- Env: `XAI_API_KEY`, `XAI_MODEL` (по умолчанию `grok-4-1-fast-non-reasoning`).
 
 ## Правила для UI
 
