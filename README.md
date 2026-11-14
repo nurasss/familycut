@@ -6,7 +6,8 @@ FamilyCut helps a US family find recurring expenses worth reviewing, decide **Ke
 effect in dollars, and get a ready-to-send cancellation email or negotiation script. No bank connection and no sign-up.
 Built for Business Cup 2.0 (Money Track). English (US), USD.
 
-- **Live demo:** `https://<your-deployment-url>` (placeholder — see [Deploy](#deploy))
+- **Live demo:** https://familycut.vercel.app (press **Try demo**, no signup)
+- **Repository:** https://github.com/nurasss/familycut
 - **Try demo:** open the app and press **Try demo**. It loads the fictional "Miller family" (clearly labelled *Sample data*) and walks
   the whole path: results → action plan → **Copy**. It works without any API key.
 

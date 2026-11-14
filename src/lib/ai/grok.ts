@@ -35,7 +35,9 @@ Output JSON only, matching the schema. Use an empty string for any text field th
 Rules:
 - action "cut": write a cancellation email. "subject" and "body" are required. Ask the provider to confirm the effective cancellation date and any remaining charges. You may politely ask whether a prorated refund is possible, but never state or imply the customer is entitled to one. Put 2-4 short instructions for using the provider's support chat or contacting support in "steps". Leave "callScript" empty.
 - action "negotiate": write a "callScript" of 3 to 6 short lines the customer can say on a call or in chat, including a request to confirm all fees, contract terms and the new price before agreeing. Leave "subject" and "body" empty. Put 3 short steps in "steps". If a target price is given, ask for it; if no target price is given, do NOT mention any specific savings amount or target.
-- Use placeholders for unknown details, exactly: [Account email], [Billing date], [Customer service channel]. Use [Service] only if the merchant name is missing.
+- Always refer to the service by the exact merchant name given. Never write [Service] when a merchant name is provided.
+- In "callScript", put each line the customer says on its own line (separated by a newline), 3 to 6 lines.
+- Use placeholders for unknown details, exactly: [Account email], [Billing date], [Customer service channel]. Sign emails with [Your name], never with a placeholder for an email address.
 - Never invent phone numbers, URLs, email addresses, competitor offers or prices, contract terms, or legal rights to a refund.
 - Tone "polite": courteous and collaborative. Tone "firm": direct and businesslike, still respectful, no threats or insults.
 - "limitations": 1-3 short honest notes, always including that the customer must contact the provider themselves and that results are not guaranteed.
