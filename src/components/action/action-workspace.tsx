@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
-  Check,
   Copy,
   Mail,
   Phone,
@@ -50,6 +49,15 @@ const STATUS_OPTIONS: { value: ActionStatus; label: string }[] = [
   { value: "attempted", label: "Attempted" },
   { value: "completed", label: "Completed" },
 ];
+
+function personalizeServiceProvider(
+  text: string,
+  expenseMerchant: string,
+  shouldPersonalize: boolean,
+): string {
+  if (!shouldPersonalize) return text;
+  return text.replace(/\b[Ss]ervice provider\b/g, () => expenseMerchant);
+}
 
 function renderWithPlaceholders(text: string) {
   const parts = text.split(/(\[[^\]\n]+\])/g);
@@ -202,27 +210,50 @@ function ActionDetail({
     };
   }, []);
 
+  const shouldPersonalizeMerchant =
+    safeMerchant === "Service provider" &&
+    Boolean(expense.merchant.trim()) &&
+    expense.merchant !== "Service provider";
+
   const displayedSubject = useMemo(() => {
     if (!isCut) return null;
-    if (actionData.subject?.trim()) return actionData.subject;
-    return templateFallback.subject ?? `Cancellation request: ${expense.merchant}`;
-  }, [isCut, actionData.subject, templateFallback.subject, expense.merchant]);
+    const rawSubject = actionData.subject?.trim()
+      ? actionData.subject
+      : (templateFallback.subject ?? `Cancellation request: ${expense.merchant}`);
+    return personalizeServiceProvider(
+      rawSubject,
+      expense.merchant,
+      shouldPersonalizeMerchant,
+    );
+  }, [
+    isCut,
+    actionData.subject,
+    templateFallback.subject,
+    expense.merchant,
+    shouldPersonalizeMerchant,
+  ]);
 
   const displayedBody = useMemo(() => {
-    if (isCut) {
-      return actionData.body?.trim()
+    const rawBody = isCut
+      ? actionData.body?.trim()
         ? actionData.body
-        : (templateFallback.body ?? "");
-    }
-    return actionData.callScript?.trim()
-      ? actionData.callScript
-      : (templateFallback.callScript ?? "");
+        : (templateFallback.body ?? "")
+      : actionData.callScript?.trim()
+        ? actionData.callScript
+        : (templateFallback.callScript ?? "");
+    return personalizeServiceProvider(
+      rawBody,
+      expense.merchant,
+      shouldPersonalizeMerchant,
+    );
   }, [
     isCut,
     actionData.body,
     actionData.callScript,
     templateFallback.body,
     templateFallback.callScript,
+    expense.merchant,
+    shouldPersonalizeMerchant,
   ]);
 
   const handleCopy = async () => {
@@ -355,14 +386,32 @@ function ActionDetail({
     }
   };
 
+  const displayedSteps = useMemo(
+    () =>
+      (actionData.steps ?? []).map((step) =>
+        personalizeServiceProvider(
+          step,
+          expense.merchant,
+          shouldPersonalizeMerchant,
+        ),
+      ),
+    [actionData.steps, expense.merchant, shouldPersonalizeMerchant],
+  );
+
   const limitationsList = useMemo(() => {
     const core =
       "You must contact the provider yourself. FamilyCut does not cancel or negotiate on your behalf.";
     const extras = (actionData?.limitations ?? []).filter(
       (l) => !l.toLowerCase().includes("contact the provider yourself"),
     );
-    return [core, ...extras];
-  }, [actionData]);
+    return [core, ...extras].map((item) =>
+      personalizeServiceProvider(
+        item,
+        expense.merchant,
+        shouldPersonalizeMerchant,
+      ),
+    );
+  }, [actionData, expense.merchant, shouldPersonalizeMerchant]);
 
   return (
     <section
@@ -482,10 +531,7 @@ function ActionDetail({
             className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-95 disabled:opacity-50 sm:flex-initial"
           >
             {copied ? (
-              <>
-                <Check className="size-4" aria-hidden="true" />
-                <span>Copied ✓</span>
-              </>
+              <span>Copied ✓</span>
             ) : (
               <>
                 <Copy className="size-4" aria-hidden="true" />
@@ -518,7 +564,7 @@ function ActionDetail({
             Next steps checklist
           </h3>
           <ul className="mt-3 space-y-2">
-            {(actionData?.steps ?? []).map((step, i) => {
+            {displayedSteps.map((step, i) => {
               const stepKey = `${expense.id}-${i}`;
               const checked = Boolean(checkedSteps[stepKey]);
               return (

@@ -861,3 +861,81 @@ test("Negotiate on /action omits Subject: and falls back to call script template
   expect(clip).not.toContain("Subject:");
   expect(clip).not.toContain("Unexpected email body content.");
 });
+
+test("Client replaces Service provider with actual merchant name on /action while keeping API payload private", async ({
+  page,
+}) => {
+  const aiPosts: Array<Record<string, unknown>> = [];
+  await page.route("**/api/ai/action", async (route) => {
+    const raw = route.request().postData();
+    if (raw) {
+      aiPosts.push(JSON.parse(raw) as Record<string, unknown>);
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        subject: null,
+        body: null,
+        callScript:
+          "Hi, I am calling about my monthly Service provider bill and would like my service provider plan lowered to $60.00.",
+        steps: [
+          "Review your Service provider statement before calling",
+          "Ask the service provider retention agent for promo pricing",
+        ],
+        limitations: [
+          "You must contact the provider yourself. FamilyCut does not cancel or negotiate on your behalf.",
+          "Service provider promotional rates may vary by area.",
+        ],
+        source: "ai",
+      }),
+    });
+  });
+
+  await page.goto("/audit");
+  await page.getByLabel(/Merchant/i).fill("Internet");
+  await page.getByLabel(/Price/i).fill("80");
+  await page.getByLabel(/Frequency/i).selectOption("monthly");
+  await page.getByRole("button", { name: "Add expense" }).click();
+
+  await page.getByRole("button", { name: "Analyze expenses (1)" }).click();
+  await expect(page).toHaveURL(/\/results/);
+
+  await page.getByRole("radio", { name: "Negotiate" }).click();
+  await page.getByLabel(/Target price/i).fill("60");
+  await page.getByRole("link", { name: /Get script/i }).click();
+  await expect(page).toHaveURL(/\/action/);
+
+  await expect.poll(() => aiPosts.length).toBe(1);
+  expect(aiPosts[0].merchant).toBe("Service provider");
+
+  const actionRegion = page.getByRole("region", {
+    name: "Action details for Internet",
+  });
+  await expect(actionRegion.getByText("Refining draft…")).toBeHidden();
+  await expect(
+    actionRegion.getByText("Written by AI · review before sending"),
+  ).toBeVisible();
+
+  await expect(actionRegion.getByTestId("action-draft-panel")).toContainText(
+    "my monthly Internet bill and would like my Internet plan lowered to $60.00.",
+  );
+  await expect(actionRegion).toContainText(
+    "Review your Internet statement before calling",
+  );
+  await expect(actionRegion).toContainText(
+    "Internet promotional rates may vary by area.",
+  );
+  await expect(actionRegion).not.toContainText(/service provider/i);
+
+  const copyBtn = actionRegion.getByRole("button", { name: "Copy", exact: true });
+  await copyBtn.click();
+  const copiedBtn = actionRegion.getByRole("button", { name: "Copied ✓" });
+  await expect(copiedBtn).toBeVisible();
+  await expect(copiedBtn).toHaveText("Copied ✓");
+  await expect(copiedBtn.locator("svg")).toHaveCount(0);
+
+  const clip = await page.evaluate(() => navigator.clipboard.readText());
+  expect(clip).toContain("Internet");
+  expect(clip).not.toMatch(/service provider/i);
+});
