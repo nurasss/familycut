@@ -102,11 +102,12 @@ export function validateModelAnswer(raw: unknown, req: ActionRequest): ActionRes
   if (steps.length < 1 || steps.length > MAX_STEPS || steps.some((s) => s === '')) return null;
   if (limitations.length < 1 || limitations.length > MAX_LIMITATIONS || limitations.some((s) => s === '')) return null;
 
-  // 4) Content safety: no contacts, no prices other than the ones we gave.
+  // 4) Content safety: no contacts, no prices other than the ones we gave, no leaked placeholders or schema keys.
   const all = [subject, body, callScript, ...steps, ...limitations].join('\n');
   if (containsUnverifiedContact(all)) return null;
   if (!amountsAllowed(all, req)) return null;
   if (/\[service\]/i.test(all)) return null; // the prompt gives the merchant name; an unfilled placeholder is a bad answer
+  if (/callscript/i.test(all)) return null; // never leak the JSON field name "callScript" into user-facing text
 
   // 5) Length limits of the public schema (also guards the sizes of every field).
   const parsed = actionResponseSchema.safeParse({

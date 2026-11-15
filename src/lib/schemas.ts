@@ -8,7 +8,7 @@ export const frequencySchema = z.enum(['weekly', 'monthly', 'quarterly', 'yearly
 
 const MAX_CENTS = 100_000_000; // $1,000,000 sanity cap
 
-export const actionRequestSchema = z.object({
+export const actionRequestSchema = z.strictObject({
   merchant: z.string().trim().min(1).max(80),
   action: z.enum(['cut', 'negotiate']),
   frequency: frequencySchema,

@@ -232,18 +232,10 @@ test("F10, F12, F14 & F02: status/reported edits avoid extra AI POSTs, yearly no
   await expect(attemptedRadio).toHaveAttribute("aria-checked", "true");
   expect(aiPostCount).toBe(1);
 
-  // Keyboard navigation: Message format tabs
-  const scriptTab = page.getByRole("tab", { name: "Phone / chat script" });
-  const emailTab = page.getByRole("tab", { name: "Email" });
-  await scriptTab.focus();
-  await page.keyboard.press("ArrowLeft");
-  await expect(emailTab).toBeFocused();
-  await expect(emailTab).toHaveAttribute("aria-selected", "true");
-  const activeTabId = await emailTab.getAttribute("id");
-  await expect(page.getByRole("tabpanel")).toHaveAttribute(
-    "aria-labelledby",
-    activeTabId!,
-  );
+  // Negotiate displays phone/chat script directly without format tabs or Subject:
+  await expect(actionRegion.getByRole("tab")).toHaveCount(0);
+  await expect(actionRegion.getByText("Phone / chat script")).toBeVisible();
+  await expect(actionRegion.getByText("Subject:")).toHaveCount(0);
 
   // Keyboard navigation: Message tone radiogroup
   const politeRadio = page.getByRole("radio", { name: "polite" });
@@ -384,7 +376,7 @@ test("F03 frontend: buildSafeActionRequest sends Service provider/Netflix, omits
   // Personalized local Template must NOT be replaced by generic "Service provider" from source="fallback"
   await expect(actionRegion.getByText("Refining draft…")).toBeHidden();
   await expect(actionRegion.getByText("Template", { exact: true })).toBeVisible();
-  const panel = actionRegion.getByRole("tabpanel");
+  const panel = actionRegion.getByTestId("action-draft-panel");
   await expect(panel).toContainText(rawPiiMerchant);
   await expect(panel).not.toContainText("Service provider");
 
@@ -820,4 +812,52 @@ test("F09 & T-13 mobile 360/375px: open row editor on mobile has zero overflow a
       auditCheck.iw,
     );
   }
+});
+
+test("Negotiate on /action omits Subject: and falls back to call script template when callScript is null", async ({
+  page,
+}) => {
+  await page.route("**/api/ai/action", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        subject: "Unexpected email subject",
+        body: "Unexpected email body content.",
+        callScript: null,
+        steps: ["Call retention desk"],
+        limitations: ["You must contact the provider yourself."],
+        source: "ai",
+      }),
+    });
+  });
+
+  await page.goto("/audit");
+  await page.getByLabel(/Merchant/i).fill("Gym Plus");
+  await page.getByLabel(/Price/i).fill("45");
+  await page.getByRole("button", { name: "Add expense" }).click();
+  await page.getByRole("button", { name: "Analyze expenses (1)" }).click();
+  await expect(page).toHaveURL(/\/results/);
+
+  await page.getByRole("radio", { name: "Negotiate" }).click();
+  await page.getByLabel(/Target price/i).fill("30");
+  await page.getByRole("link", { name: /Get script/i }).click();
+  await expect(page).toHaveURL(/\/action/);
+
+  const actionRegion = page.getByRole("region", {
+    name: "Action details for Gym Plus",
+  });
+  await expect(actionRegion.getByText("Refining draft…")).toBeHidden();
+  await expect(page.getByText("Subject:")).toHaveCount(0);
+  await expect(actionRegion.getByText("Phone / chat script")).toBeVisible();
+  await expect(actionRegion.getByTestId("action-draft-panel")).not.toContainText(
+    "Unexpected email body content.",
+  );
+  await expect(actionRegion.getByRole("radio", { name: "polite" })).toBeVisible();
+  await expect(actionRegion.getByRole("radio", { name: "firm" })).toBeVisible();
+
+  await actionRegion.getByRole("button", { name: "Copy", exact: true }).click();
+  const clip = await page.evaluate(() => navigator.clipboard.readText());
+  expect(clip).not.toContain("Subject:");
+  expect(clip).not.toContain("Unexpected email body content.");
 });

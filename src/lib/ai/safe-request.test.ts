@@ -118,6 +118,8 @@ describe('buildSafeActionRequest', () => {
       tone: 'firm',
     });
     expect(containsPii(JSON.stringify(req))).toBe(false);
+    expect(actionRequestSchema.safeParse(req).success).toBe(true);
+    expect(actionRequestSchema.safeParse({ ...req, extraField: 'unexpected' }).success).toBe(false);
   });
 
   it('the target price is only sent for negotiation and the key is absent when there is none', () => {
@@ -259,19 +261,27 @@ describe('payload sent to the model (mocked fetch)', () => {
       }),
     );
 
-  it('direct API POST is cleaned on the server regardless of the client; extra fields are not forwarded; nothing is logged', async () => {
+  it('direct API POST is cleaned on the server regardless of the client; nothing is logged', async () => {
     const f = vi.fn().mockImplementation(async () => goodReply());
     vi.stubGlobal('fetch', f);
     const spies = (['log', 'info', 'warn', 'error', 'debug'] as const).map((m) => vi.spyOn(console, m).mockImplementation(() => {}));
-    const res = await post({ ...req(PII_NAME), notes: `owner ${PII_NAME}`, email: 'john.smith@example.com' });
+    const res = await post(req(PII_NAME));
     expect(res.status).toBe(200);
     expect((await res.json()).source).toBe('ai');
     const payloads = modelPayloads(f);
     expect(payloads).toHaveLength(1);
     expect(containsPii(payloads[0])).toBe(false);
-    expect(payloads[0]).not.toContain('owner');
     expect(JSON.parse(payloads[0]).messages[1].content).toContain('merchant: Service provider');
     expect(JSON.stringify(spies.flatMap((s) => s.mock.calls))).not.toMatch(/John|Smith|example\.com|12345678/);
+  });
+
+  it('direct API POST with any extra field returns 400 {"error":"invalid_request"} and never calls fetch', async () => {
+    const f = vi.fn().mockImplementation(async () => goodReply());
+    vi.stubGlobal('fetch', f);
+    const res = await post({ ...req('Netflix'), notes: `owner ${PII_NAME}`, email: 'john.smith@example.com' }, '203.0.113.71');
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'invalid_request' });
+    expect(f).not.toHaveBeenCalled();
   });
 
   it('direct POST with a known service keeps its name; with injection text it is replaced', async () => {

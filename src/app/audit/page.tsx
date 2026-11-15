@@ -256,7 +256,7 @@ export default function AuditPage() {
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <SiteHeader variant="app" currentStep={1} />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-8 pb-28 sm:px-6">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-8 pb-[calc(7.5rem+env(safe-area-inset-bottom))] sm:px-6">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
             Add your recurring expenses
@@ -355,7 +355,7 @@ export default function AuditPage() {
       </main>
 
       {/* Bottom sticky action bar */}
-      <div className="sticky bottom-0 z-20 border-t border-border bg-card shadow-[0_-4px_16px_rgba(28,25,23,0.06)]">
+      <div className="sticky bottom-0 z-20 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(28,25,23,0.06)]">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-6">
           <button
             type="button"

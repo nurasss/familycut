@@ -62,7 +62,7 @@ export function FamilyGoalCard({
   return (
     <aside
       aria-label="Family goal and action plan"
-      className="print-avoid-break rounded-xl border border-border bg-card p-5 lg:sticky lg:top-32"
+      className="print-avoid-break rounded-xl border border-border bg-card p-5"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">

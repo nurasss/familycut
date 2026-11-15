@@ -1,0 +1,10 @@
+ЭТАП 14B — исправления API по итогам QA прода (docs/audits/2026-11-15-prod-qa/REPORT.md). Сегодня дедлайн, правки точечные. Параллельно фронтенд делает 14A в src/app/** (кроме api) и src/components/**. Туда не заходи. Контракт ответа (subject/body для cut, callScript для negotiate, остальное null) НЕ меняй: фронтенд на него опирается.
+
+1. [Minor, безопасность] POST /api/ai/action принимает лишние поля: тело с "extraField":"hack" даёт 200 и уходит в модель. Сделай actionRequestSchema строгой (z.strictObject или .strict() в zod 4), чтобы любое лишнее поле давало 400 {"error":"invalid_request"} без стектрейса. Проверь, что buildSafeActionRequest на клиенте не шлёт ничего сверх 6 полей (иначе сломаем прод); targetPriceCents по-прежнему необязателен.
+2. [Minor, качество текста] В шагах Firm Negotiate AI написал "State the callScript lines exactly.": утекло имя поля JSON. В SYSTEM_PROMPT (src/lib/ai/grok.ts) добавь правило: в steps, body и callScript никогда не упоминать имена полей (subject, body, callScript, steps, limitations) и не ссылаться на "the script above" как на поле; писать как для человека ("Read the lines below…"). В response-check.ts добавь проверку: если в steps/body/callScript/limitations встречаются литералы subject|body|callScript|limitations как слово в camelCase/кавычках, ответ отклоняется и идёт retry/fallback. Не делай проверку на обычное английское слово "body" в нормальном тексте: ловить только "callScript" и имена полей в кавычках или с двоеточием.
+3. Тесты (vitest): лишнее поле → 400; каждое из 6 полей по отдельности валидно как раньше; ответ модели со steps "State the callScript lines exactly." отклоняется проверкой; обычный ответ проходит. Обнови e2e/security.spec.ts, если там есть проверка невалидных тел.
+
+Ограничения: только src/lib/**, src/app/api/**, тесты src/**/*.test.ts и e2e/security.spec.ts. Не убивай процессы, не читай и не выводи .env.local, не коммить и не пушь: коммит делает куратор.
+
+ГОТОВНОСТЬ: npm run typecheck, npm run lint, npm test, XAI_API_KEY='' npm run test:e2e зелёные (реальные коды выхода).
+В ОТВЕТЕ: диф кратко, пример curl с extraField → 400, числа тестов, отступления.

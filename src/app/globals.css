@@ -80,7 +80,7 @@
     color-scheme: light;
     scroll-behavior: smooth;
     scroll-padding-top: 8.5rem;
-    scroll-padding-bottom: 5.5rem;
+    scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom));
   }
 
   body {

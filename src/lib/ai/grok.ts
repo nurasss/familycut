@@ -43,7 +43,8 @@ Rules:
 - Never invent phone numbers, URLs, email addresses, competitor offers or prices, contract terms, or legal rights to a refund.
 - Tone "polite": courteous and collaborative. Tone "firm": direct and businesslike, still respectful, no threats or insults.
 - "limitations": 1-3 short honest notes, always including that the customer must contact the provider themselves and that results are not guaranteed.
-- Do not do any math with money other than repeating the given amounts.`;
+- Do not do any math with money other than repeating the given amounts.
+- Never mention JSON field names (subject, body, callScript, steps, limitations) in any generated text; write for humans instead (e.g., "Read the lines below").`;
 
 function userPrompt(req: ActionRequest): string {
   const lines = [

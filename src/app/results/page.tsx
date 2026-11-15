@@ -188,7 +188,7 @@ export default function ResultsPage() {
 
             {/* Main 2-column content: Goal sidebar first in mobile flow? Right on desktop, above list on mobile */}
             <div className="print-single-col grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-              <div className="order-1 lg:order-2 lg:col-span-4">
+              <div className="order-1 lg:sticky lg:top-[9.5rem] lg:order-2 lg:col-span-4">
                 <FamilyGoalCard
                   goal={session.goal}
                   totals={totals}

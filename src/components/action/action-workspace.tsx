@@ -42,14 +42,8 @@ import { useTryDemo } from "@/components/demo/use-try-demo";
 import { useHasHydrated } from "@/components/use-hydrated";
 import { cn } from "@/lib/utils";
 
-type ChannelTab = "email" | "script";
-
 const CLIENT_DEADLINE_MS = 8500;
 const TONES: ActionTone[] = ["polite", "firm"];
-const CHANNELS: { value: ChannelTab; label: string }[] = [
-  { value: "email", label: "Email" },
-  { value: "script", label: "Phone / chat script" },
-];
 
 const STATUS_OPTIONS: { value: ActionStatus; label: string }[] = [
   { value: "not_started", label: "Not started" },
@@ -86,10 +80,8 @@ function ActionDetail({
   ) => void;
 }) {
   const uid = useId();
+  const isCut = expense.decision === "cut";
   const [tone, setTone] = useState<ActionTone>("polite");
-  const [channel, setChannel] = useState<ChannelTab>(
-    expense.decision === "cut" ? "email" : "script",
-  );
   const [regenCount, setRegenCount] = useState(0);
   const [aiDraft, setAiDraft] = useState<{
     key: string;
@@ -109,7 +101,6 @@ function ActionDetail({
 
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toneRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const channelRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const statusRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const expenseId = expense.id;
@@ -153,10 +144,13 @@ function ActionDetail({
   );
 
   const isEnhancing = settledKey !== requestKey;
-  const actionData =
-    aiDraft?.key === requestKey && aiDraft.response.source === "ai"
-      ? aiDraft.response
-      : templateFallback;
+  const hasAiDraftForFormat =
+    aiDraft?.key === requestKey &&
+    aiDraft.response.source === "ai" &&
+    (isCut
+      ? Boolean(aiDraft.response.body?.trim())
+      : Boolean(aiDraft.response.callScript?.trim()));
+  const actionData = hasAiDraftForFormat ? aiDraft.response : templateFallback;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -209,26 +203,34 @@ function ActionDetail({
   }, []);
 
   const displayedSubject = useMemo(() => {
-    if (!actionData || channel !== "email") return null;
-    if (actionData.subject) return actionData.subject;
-    return expense.decision === "cut"
-      ? `Cancellation request: ${expense.merchant}`
-      : `Billing review request: ${expense.merchant}`;
-  }, [expense.decision, expense.merchant, actionData, channel]);
+    if (!isCut) return null;
+    if (actionData.subject?.trim()) return actionData.subject;
+    return templateFallback.subject ?? `Cancellation request: ${expense.merchant}`;
+  }, [isCut, actionData.subject, templateFallback.subject, expense.merchant]);
 
   const displayedBody = useMemo(() => {
-    if (!actionData) return "";
-    if (channel === "email") {
-      return actionData.body ?? actionData.callScript ?? "";
+    if (isCut) {
+      return actionData.body?.trim()
+        ? actionData.body
+        : (templateFallback.body ?? "");
     }
-    return actionData.callScript ?? actionData.body ?? "";
-  }, [actionData, channel]);
+    return actionData.callScript?.trim()
+      ? actionData.callScript
+      : (templateFallback.callScript ?? "");
+  }, [
+    isCut,
+    actionData.body,
+    actionData.callScript,
+    templateFallback.body,
+    templateFallback.callScript,
+  ]);
 
   const handleCopy = async () => {
     if (!displayedBody) return;
-    const fullText = displayedSubject
-      ? `Subject: ${displayedSubject}\n\n${displayedBody}`
-      : displayedBody;
+    const fullText =
+      isCut && displayedSubject
+        ? `Subject: ${displayedSubject}\n\n${displayedBody}`
+        : displayedBody;
 
     try {
       await navigator.clipboard.writeText(fullText);
@@ -332,25 +334,6 @@ function ActionDetail({
     }
   };
 
-  const handleChannelKeyDown = (
-    e: React.KeyboardEvent<HTMLButtonElement>,
-    idx: number,
-  ) => {
-    let nextIdx: number | null = null;
-    if (e.key === "ArrowRight") nextIdx = (idx + 1) % CHANNELS.length;
-    else if (e.key === "ArrowLeft")
-      nextIdx = (idx - 1 + CHANNELS.length) % CHANNELS.length;
-    else if (e.key === "Home") nextIdx = 0;
-    else if (e.key === "End") nextIdx = CHANNELS.length - 1;
-
-    if (nextIdx !== null) {
-      e.preventDefault();
-      setChannel(CHANNELS[nextIdx].value);
-      setCopied(false);
-      channelRefs.current[nextIdx]?.focus();
-    }
-  };
-
   const handleStatusKeyDown = (
     e: React.KeyboardEvent<HTMLButtonElement>,
     idx: number,
@@ -442,55 +425,27 @@ function ActionDetail({
         </div>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <div
-            role="tablist"
-            aria-label="Message format"
-            className="inline-flex rounded-lg border border-border bg-background p-1"
-          >
-            {CHANNELS.map((ch, idx) => {
-              const selected = channel === ch.value;
-              return (
-                <button
-                  key={ch.value}
-                  ref={(el) => {
-                    channelRefs.current[idx] = el;
-                  }}
-                  id={`${uid}-tab-${ch.value}`}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  aria-controls={`${uid}-tabpanel-${ch.value}`}
-                  tabIndex={selected ? 0 : -1}
-                  onClick={() => {
-                    setChannel(ch.value);
-                    setCopied(false);
-                  }}
-                  onKeyDown={(e) => handleChannelKeyDown(e, idx)}
-                  className={cn(
-                    "relative inline-flex min-h-10 items-center gap-1.5 rounded-md px-3.5 text-xs font-semibold transition-colors",
-                    selected
-                      ? "bg-card text-foreground shadow-xs after:pointer-events-none after:absolute after:inset-x-2.5 after:bottom-0 after:border-b-2 after:border-primary"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {ch.value === "email" ? (
-                    <Mail className="size-3.5" aria-hidden="true" />
-                  ) : (
-                    <Phone className="size-3.5" aria-hidden="true" />
-                  )}
-                  <span>{ch.label}</span>
-                </button>
-              );
-            })}
+          <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground">
+            {isCut ? (
+              <>
+                <Mail className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                <span>Cancellation email</span>
+              </>
+            ) : (
+              <>
+                <Phone className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                <span>Phone / chat script</span>
+              </>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center rounded-full border border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-muted-foreground">
-              {actionData.source === "ai"
+              {hasAiDraftForFormat
                 ? "Written by AI · review before sending"
                 : "Template"}
             </span>
-            {isEnhancing && actionData.source !== "ai" && (
+            {isEnhancing && !hasAiDraftForFormat && (
               <span className="text-xs text-muted-foreground">
                 Refining draft…
               </span>
@@ -499,10 +454,7 @@ function ActionDetail({
         </div>
 
         <div
-          id={`${uid}-tabpanel-${channel}`}
-          role="tabpanel"
-          aria-labelledby={`${uid}-tab-${channel}`}
-          tabIndex={0}
+          data-testid="action-draft-panel"
           className="mt-4 rounded-xl border border-border bg-background/70 p-4 sm:p-5"
         >
           <div className="space-y-3">

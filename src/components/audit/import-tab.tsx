@@ -478,12 +478,14 @@ export function ImportTab({
     setIsSample(false);
     setRawText(null);
     clearPreviewState();
-    setFileName(file.name);
+    setFileName(null);
 
     if (file.size > MAX_FILE_BYTES) {
       setParseError("File exceeds the 5 MB limit. Split the export and try again.");
       return;
     }
+
+    setFileName(file.name);
 
     setIsLoading(true);
     setLoadingStepIdx(0);

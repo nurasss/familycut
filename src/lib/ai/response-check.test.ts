@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { POST } from '@/app/api/ai/action/route';
 import type { ActionRequest, ActionResponse } from '@/lib/types';
 import { fallbackAction } from './fallback';
-import { generateWithGrok, parseModelOutput } from './grok';
+import { SYSTEM_PROMPT, generateWithGrok, parseModelOutput } from './grok';
 import { resetRateLimit } from './rateLimit';
 import { containsUnverifiedContact, validateModelAnswer } from './response-check';
 
@@ -231,6 +231,22 @@ describe('W3B1 bracketed text does not hide contacts; ordinary domains are recog
       expect(validateModelAnswer(ans, req), name).not.toBeNull();
     }
   });
+
+  it('rejects leaked JSON field name "callScript" in steps, body, callScript, or limitations while keeping normal English "body"', () => {
+    expect(validateModelAnswer(negotiateAnswer({ steps: ['State the callScript lines exactly.'] }), NEGOTIATE)).toBeNull();
+    expect(validateModelAnswer(cutAnswer({ body: 'Cancel now.\nState the callScript lines if asked.' }), CUT)).toBeNull();
+    expect(
+      validateModelAnswer(
+        negotiateAnswer({ callScript: `Hi, I pay $75.00.\nRead this callScript line.\nPlease confirm fees and terms.` }),
+        NEGOTIATE,
+      ),
+    ).toBeNull();
+    expect(validateModelAnswer(negotiateAnswer({ limitations: ['You must read the callScript yourself.'] }), NEGOTIATE)).toBeNull();
+
+    // Ordinary English "body" must remain allowed.
+    expect(validateModelAnswer(cutAnswer({ body: 'Hello, put your account email in the message body and cancel.' }), CUT)).not.toBeNull();
+    expect(validateModelAnswer(cutAnswer({ steps: ['Paste the text into the email body and send it.'] }), CUT)).not.toBeNull();
+  });
 });
 
 describe('generateWithGrok retries once on a structurally invalid answer, then falls back', () => {
@@ -327,6 +343,60 @@ describe('generateWithGrok retries once on a structurally invalid answer, then f
     expect(body.callScript!.split('\n').length).toBeGreaterThanOrEqual(3);
     expect(f).toHaveBeenCalledTimes(2);
     for (const [, init] of f.mock.calls) expect(String(init.body)).not.toMatch(/John|Smith|example\.com/);
+  });
+
+  it('14B: SYSTEM_PROMPT forbids mentioning JSON field names; "callScript" leak triggers retry and fallback; extra request field returns 400', async () => {
+    for (const field of ['subject', 'body', 'callScript', 'steps', 'limitations']) {
+      expect(SYSTEM_PROMPT).toContain(field);
+    }
+    expect(SYSTEM_PROMPT).toContain('Read the lines below');
+
+    const leaked = negotiateAnswer({ steps: ['State the callScript lines exactly.'] });
+    const retryGood = vi
+      .fn()
+      .mockImplementationOnce(async () => reply(leaked))
+      .mockImplementationOnce(async () => reply(negotiateAnswer()));
+    vi.stubGlobal('fetch', retryGood);
+    expect(await generateWithGrok(NEGOTIATE)).toMatchObject({ source: 'ai', callScript: SCRIPT });
+    expect(retryGood).toHaveBeenCalledTimes(2);
+
+    const alwaysLeaked = vi.fn().mockImplementation(async () => reply(leaked));
+    vi.stubGlobal('fetch', alwaysLeaked);
+    const routeFallback = await POST(
+      new Request('http://localhost/api/ai/action', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-forwarded-for': '198.51.100.21' },
+        body: JSON.stringify(NEGOTIATE),
+      }),
+    );
+    expect(routeFallback.status).toBe(200);
+    expect(((await routeFallback.json()) as ActionResponse).source).toBe('fallback');
+    expect(alwaysLeaked).toHaveBeenCalledTimes(2);
+
+    const extraFieldSpy = vi.fn();
+    vi.stubGlobal('fetch', extraFieldSpy);
+    const badReq = await POST(
+      new Request('http://localhost/api/ai/action', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-forwarded-for': '198.51.100.22' },
+        body: JSON.stringify({ ...NEGOTIATE, extra: 'nope' }),
+      }),
+    );
+    expect(badReq.status).toBe(400);
+    expect(await badReq.json()).toEqual({ error: 'invalid_request' });
+    expect(extraFieldSpy).not.toHaveBeenCalled();
+
+    const okFetch = vi.fn().mockImplementation(async () => reply(negotiateAnswer()));
+    vi.stubGlobal('fetch', okFetch);
+    const okReq = await POST(
+      new Request('http://localhost/api/ai/action', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-forwarded-for': '198.51.100.23' },
+        body: JSON.stringify(NEGOTIATE),
+      }),
+    );
+    expect(okReq.status).toBe(200);
+    expect(((await okReq.json()) as ActionResponse).source).toBe('ai');
   });
 });
 
